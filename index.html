@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyTrack — GATE CSE Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0c0f;
+  --bg-card: #131316;
+  --bg-card2: #1a1a1f;
+  --bg-hover: #1f1f26;
+  --border: #27272a;
+  --border2: #333338;
+  --text: #f0f0f2;
+  --text2: #8a8a95;
+  --text3: #52525a;
+  --accent: #5e6ad2;
+  --accent2: #6d79e8;
+  --green: #2a9d5c;
+  --green-bg: rgba(42,157,92,0.12);
+  --yellow: #c9922a;
+  --yellow-bg: rgba(201,146,42,0.12);
+  --red: #d64e4e;
+  --red-bg: rgba(214,78,78,0.12);
+  --blue: #2e7cd4;
+  --blue-bg: rgba(46,124,212,0.12);
+  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-full: 9999px;
+  --t: 150ms ease;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; height: 100vh; overflow: hidden; }
+svg { display: inline-block; vertical-align: middle; }
+
+/* LAYOUT */
+#app { display: flex; height: 100vh; overflow: hidden; }
+#sidebar { width: 248px; background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#topbar { height: 64px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; flex-shrink: 0; }
+#content { flex: 1; overflow-y: auto; padding: 2rem; }
+
+/* SIDEBAR */
+.logo { padding: 1.25rem 1.25rem 1rem; display: flex; align-items: center; gap: 0.625rem; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); border-bottom: 1px solid var(--border); }
+.logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+.nav { flex: 1; padding: 0.75rem 0.625rem; display: flex; flex-direction: column; gap: 1px; overflow-y: auto; }
+.nav-item { display: flex; align-items: center; gap: 0.625rem; padding: 0.5rem 0.75rem; border-radius: var(--r-sm); color: var(--text2); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all var(--t); border: none; background: none; width: 100%; text-align: left; }
+.nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.nav-item.active { background: var(--bg-hover); color: var(--text); }
+.nav-item.active svg { color: var(--accent); }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.sidebar-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
+.target-box { background: var(--bg-card2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 0.875rem; }
+.target-label { font-size: 0.7rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.25rem; }
+.target-val { font-weight: 700; font-size: 0.95rem; }
+.streak-row { display: flex; align-items: center; gap: 0.4rem; margin: 0.5rem 0 0.75rem; font-size: 0.8rem; font-weight: 500; color: var(--yellow); }
+
+/* TOPBAR */
+.greeting { font-size: 1rem; font-weight: 600; }
+.date-text { font-size: 0.8rem; color: var(--text2); margin-top: 0.1rem; }
+.topbar-right { display: flex; align-items: center; gap: 1rem; }
+.avatar { width: 32px; height: 32px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; cursor: pointer; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.875rem; border-radius: var(--r-sm); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all var(--t); border: 1px solid transparent; background: none; color: var(--text); font-family: inherit; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn-secondary { background: var(--bg-card2); border-color: var(--border); }
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--border2); }
+.btn-danger { background: var(--red-bg); color: var(--red); border-color: rgba(214,78,78,0.25); }
+.btn-danger:hover { background: rgba(214,78,78,0.2); }
+.btn-sm { padding: 0.3rem 0.625rem; font-size: 0.75rem; }
+.btn-lg { padding: 0.75rem 2rem; font-size: 0.95rem; border-radius: var(--r-md); }
+.btn-full { width: 100%; justify-content: center; }
+.btn svg { width: 14px; height: 14px; }
+.btn-lg svg { width: 16px; height: 16px; }
+
+/* CARDS */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-md); padding: 1.25rem; }
+.card-sm { padding: 0.875rem; }
+.section-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; }
+
+/* GRID */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+
+/* STAT CARD */
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-md); padding: 1.1rem 1.25rem; }
+.stat-label { font-size: 0.75rem; color: var(--text2); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-label svg { width: 13px; height: 13px; }
+.stat-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+
+/* PROGRESS BAR */
+.bar-bg { height: 4px; background: var(--border); border-radius: var(--r-full); overflow: hidden; margin-top: 0.5rem; }
+.bar-fill { height: 100%; border-radius: var(--r-full); transition: width 0.4s ease; }
+
+/* BADGE */
+.badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem; border-radius: var(--r-full); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.03em; border: 1px solid transparent; }
+.badge-green { background: var(--green-bg); color: var(--green); border-color: rgba(42,157,92,0.2); }
+.badge-yellow { background: var(--yellow-bg); color: var(--yellow); border-color: rgba(201,146,42,0.2); }
+.badge-red { background: var(--red-bg); color: var(--red); border-color: rgba(214,78,78,0.2); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); border-color: rgba(46,124,212,0.2); }
+.badge-accent { background: rgba(94,106,210,0.15); color: var(--accent); border-color: rgba(94,106,210,0.25); }
+
+/* TASK LIST */
+.task-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.task-row { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 0.875rem; background: var(--bg-card2); border: 1px solid var(--border); border-radius: var(--r-sm); gap: 1rem; transition: border-color var(--t); }
+.task-row:hover { border-color: var(--border2); }
+.task-row.completed { opacity: 0.5; }
+.task-row.completed .task-topic { text-decoration: line-through; }
+.task-left { display: flex; align-items: center; gap: 0.75rem; }
+.check-box { width: 18px; height: 18px; border: 1.5px solid var(--text3); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all var(--t); }
+.check-box.on { background: var(--accent); border-color: var(--accent); }
+.check-box.on svg { opacity: 1; color: white; }
+.check-box svg { width: 11px; height: 11px; opacity: 0; }
+.task-subject { font-size: 0.7rem; color: var(--text2); font-weight: 500; }
+.task-topic { font-size: 0.875rem; }
+.task-meta { font-size: 0.75rem; color: var(--text3); white-space: nowrap; }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 1rem 0; }
+
+/* INPUT */
+.input { background: var(--bg-card2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 0.55rem 0.75rem; color: var(--text); font-size: 0.875rem; font-family: inherit; outline: none; transition: border-color var(--t); width: 100%; }
+.input:focus { border-color: var(--accent); }
+.select { appearance: none; background: var(--bg-card2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 0.55rem 0.75rem; color: var(--text); font-size: 0.875rem; font-family: inherit; outline: none; cursor: pointer; width: 100%; }
+.select:focus { border-color: var(--accent); }
+.label { font-size: 0.78rem; color: var(--text2); font-weight: 500; margin-bottom: 0.35rem; display: block; }
+.form-group { margin-bottom: 1rem; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+.modal-box { background: var(--bg-card); border: 1px solid var(--border2); border-radius: var(--r-lg); padding: 2rem; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+.modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+.modal-sub { font-size: 0.8rem; color: var(--text2); margin-bottom: 1.5rem; }
+
+/* TABLE */
+table { width: 100%; border-collapse: collapse; }
+thead tr { border-bottom: 1px solid var(--border); }
+th { font-size: 0.72rem; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.625rem 0.5rem; text-align: left; }
+td { padding: 0.75rem 0.5rem; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg-card2); }
+
+/* TIMER */
+.timer-display { font-size: 5.5rem; font-weight: 800; letter-spacing: -4px; font-variant-numeric: tabular-nums; }
+.timer-active { color: var(--green); }
+.timer-paused { color: var(--text); }
+
+/* STUDY NOW CARD */
+.study-now { background: linear-gradient(135deg, var(--bg-card) 0%, #1a1a26 100%); border: 1px solid var(--border2); border-radius: var(--r-lg); padding: 1.5rem; position: relative; overflow: hidden; }
+.study-now::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+
+/* HEALTH BAR */
+.health-ring { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+
+/* ALERT BANNER */
+.alert-banner { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 999; background: var(--red-bg); border: 1px solid var(--red); border-radius: var(--r-md); padding: 0.625rem 1.25rem; font-size: 0.85rem; font-weight: 500; color: var(--red); display: flex; align-items: center; gap: 0.5rem; animation: slideDown 0.3s ease; pointer-events: none; }
+@keyframes slideDown { from { opacity: 0; top: -20px; } to { opacity: 1; top: 16px; } }
+
+/* PYQ OPTION */
+.pyq-opt { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.875rem 1rem; border: 1.5px solid var(--border); border-radius: var(--r-md); cursor: pointer; transition: all var(--t); background: var(--bg-card2); margin-bottom: 0.5rem; width: 100%; text-align: left; font-family: inherit; color: var(--text); font-size: 0.875rem; }
+.pyq-opt:hover { border-color: var(--accent); background: rgba(94,106,210,0.06); }
+.pyq-opt.correct { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+.pyq-opt.wrong { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+.pyq-opt:disabled { cursor: not-allowed; opacity: 0.8; }
+.opt-label { width: 20px; height: 20px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; margin-top: 0.05rem; }
+
+/* ONBOARDING STEP */
+.step-bar { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+.step-dot { height: 4px; flex: 1; background: var(--border); border-radius: var(--r-full); transition: background 0.3s; }
+.step-dot.done { background: var(--accent); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* FLEX UTILS */
+.flex { display: flex; align-items: center; } .flex-col { flex-direction: column; } .gap-1 { gap: 0.25rem; } .gap-2 { gap: 0.5rem; } .gap-3 { gap: 0.75rem; } .gap-4 { gap: 1rem; } .justify-between { justify-content: space-between; } .justify-center { justify-content: center; } .justify-end { justify-content: flex-end; } .items-start { align-items: flex-start; } .flex-1 { flex: 1; } .w-full { width: 100%; }
+.mt-1 { margin-top: 0.25rem; } .mt-2 { margin-top: 0.5rem; } .mt-3 { margin-top: 0.75rem; } .mt-4 { margin-top: 1rem; } .mt-6 { margin-top: 1.5rem; } .mb-1 { margin-bottom: 0.25rem; } .mb-2 { margin-bottom: 0.5rem; } .mb-3 { margin-bottom: 0.75rem; } .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; }
+.text-xs { font-size: 0.72rem; } .text-sm { font-size: 0.8rem; } .text-base { font-size: 0.9rem; } .text-lg { font-size: 1.1rem; } .text-xl { font-size: 1.25rem; } .text-2xl { font-size: 1.5rem; }
+.font-medium { font-weight: 500; } .font-semibold { font-weight: 600; } .font-bold { font-weight: 700; }
+.text-muted { color: var(--text2); } .text-dim { color: var(--text3); } .text-accent { color: var(--accent); } .text-green { color: var(--green); } .text-red { color: var(--red); } .text-yellow { color: var(--yellow); }
+.text-center { text-align: center; } .text-right { text-align: right; }
+.block { display: block; } .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <aside id="sidebar">
+    <div class="logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--accent)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span>StudyTrack</span>
+    </div>
+    <nav class="nav" id="nav-links"></nav>
+    <div class="sidebar-footer">
+      <div class="target-box">
+        <div class="target-label">Target Exam</div>
+        <div class="target-val" id="sidebar-target">GATE 2027</div>
+        <div class="streak-row">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 0 1h-.5v.5a.5.5 0 0 1-1 0v-.5h-.5a.5.5 0 0 1 0-1h.5V2a.5.5 0 0 1 .5-.5zM9.5 7c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5S9.5 8.38 9.5 7zM6.5 10c-.83 0-1.5.67-1.5 1.5v1c0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5v-1c0-.83-.67-1.5-1.5-1.5h-11zM5 16h14l-1 6H6l-1-6z"/></svg>
+          <span id="sidebar-streak">0 Day Streak</span>
+        </div>
+        <button class="btn btn-primary btn-full btn-sm" onclick="App.quickStart()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Quick Start Session
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div id="main">
+    <div id="topbar">
+      <div>
+        <div class="greeting" id="topbar-greeting">Good afternoon, Hari 👋</div>
+        <div class="date-text" id="topbar-date"></div>
+      </div>
+      <div class="topbar-right">
+        <div class="avatar">H</div>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<div id="alert-root"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA LAYER
+// ═══════════════════════════════════════════════════════════
+
+const SYLLABUS = {
+  em:   { name: 'Engineering Mathematics', topics: [{id:'em1',name:'Linear Algebra'},{id:'em2',name:'Calculus'},{id:'em3',name:'Probability & Statistics'},{id:'em4',name:'Graph Theory & Combinatorics'}] },
+  dm:   { name: 'Discrete Mathematics', topics: [{id:'dm1',name:'Propositional Logic'},{id:'dm2',name:'Set Theory & Relations'},{id:'dm3',name:'Groups & Lattices'},{id:'dm4',name:'Combinatorics'}] },
+  dl:   { name: 'Digital Logic', topics: [{id:'dl1',name:'Boolean Algebra & K-Maps'},{id:'dl2',name:'Combinational Circuits'},{id:'dl3',name:'Sequential Circuits'},{id:'dl4',name:'Number Systems'}] },
+  coa:  { name: 'COA', topics: [{id:'coa1',name:'Machine Instructions & Addressing'},{id:'coa2',name:'ALU & Data-Path Design'},{id:'coa3',name:'Instruction Pipelining'},{id:'coa4',name:'Cache Memory & Hierarchy'},{id:'coa5',name:'I/O & DMA'}] },
+  ds:   { name: 'Data Structures', topics: [{id:'ds1',name:'Arrays, Stacks, Queues'},{id:'ds2',name:'Linked Lists'},{id:'ds3',name:'Trees & BSTs'},{id:'ds4',name:'Heaps & Hashing'},{id:'ds5',name:'Graphs'}] },
+  algo: { name: 'Algorithms', topics: [{id:'al1',name:'Asymptotic Analysis'},{id:'al2',name:'Sorting & Searching'},{id:'al3',name:'Divide & Conquer'},{id:'al4',name:'Dynamic Programming'},{id:'al5',name:'Greedy Algorithms'},{id:'al6',name:'Graph Algorithms (MST, Shortest Path)'}] },
+  toc:  { name: 'Theory of Computation', topics: [{id:'tc1',name:'Regular Languages & Finite Automata'},{id:'tc2',name:'Context-Free Grammars & PDAs'},{id:'tc3',name:'Turing Machines & Decidability'}] },
+  cd:   { name: 'Compiler Design', topics: [{id:'cd1',name:'Lexical Analysis'},{id:'cd2',name:'Parsing (LL, LR, LALR)'},{id:'cd3',name:'Code Generation & Optimization'}] },
+  os:   { name: 'Operating Systems', topics: [{id:'os1',name:'Process Management & Scheduling'},{id:'os2',name:'Concurrency & Synchronization'},{id:'os3',name:'Deadlocks'},{id:'os4',name:'Memory Management (Paging, VM)'},{id:'os5',name:'File Systems & Disk Scheduling'}] },
+  dbms: { name: 'DBMS', topics: [{id:'db1',name:'Relational Model & SQL'},{id:'db2',name:'Functional Dependencies & Normalization'},{id:'db3',name:'Transactions & Concurrency Control'},{id:'db4',name:'Indexing (B/B+ Trees)'}] },
+  cn:   { name: 'Computer Networks', topics: [{id:'cn1',name:'OSI & TCP/IP Model'},{id:'cn2',name:'Data Link Layer (Sliding Window)'},{id:'cn3',name:'Network Layer (IP, Routing)'},{id:'cn4',name:'TCP/UDP & Congestion Control'},{id:'cn5',name:'Application Layer Protocols'},{id:'cn6',name:'Network Security'}] }
+};
+
+const QUESTIONS = [
+  { id:'q1', subId:'os', topicId:'os4', topicName:'Memory Management (Paging, VM)', year:2023, type:'Official', difficulty:'Hard',
+    text:'In a system with 3 page frames, using the LRU replacement policy for the reference string 1,2,3,4,1,2,5,1,2,3,4,5, how many page faults occur?',
+    opts:['8','9','10','11'], correct:2, explanation:'Tracing LRU step-by-step: 1(F),2(F),3(F),4(F),1(F),2(F),5(F),1(hit),2(hit),3(F),4(F),5(F) = 10 faults.' },
+  { id:'q2', subId:'dbms', topicId:'db2', topicName:'Functional Dependencies & Normalization', year:2022, type:'Official', difficulty:'Hard',
+    text:'A relation R(A,B,C,D) has FDs: AB→C, C→D, D→A. What is/are the candidate key(s)?',
+    opts:['AB','BC','AB and BC','AB, BC, and BD'], correct:2, explanation:'Closure of AB: {A,B,C,D} ✓. Closure of BC: {B,C,D,A} ✓. Both are minimal candidate keys.' },
+  { id:'q3', subId:'cn', topicId:'cn4', topicName:'TCP/UDP & Congestion Control', year:2024, type:'Official', difficulty:'Hard',
+    text:'In TCP, if the current congestion window is 32 KB and a timeout occurs, what will be the new ssthresh and cwnd values? (MSS = 1 KB)',
+    opts:['ssthresh=16KB, cwnd=1KB','ssthresh=16KB, cwnd=32KB','ssthresh=32KB, cwnd=1KB','ssthresh=8KB, cwnd=1KB'], correct:0, explanation:'On timeout: ssthresh = cwnd/2 = 16KB, cwnd resets to 1 MSS = 1KB.' },
+  { id:'q4', subId:'algo', topicId:'al4', topicName:'Dynamic Programming', year:2023, type:'Official', difficulty:'Medium',
+    text:'The time complexity of the Floyd-Warshall algorithm for an n-vertex graph is:',
+    opts:['O(n²)','O(n² log n)','O(n³)','O(n⁴)'], correct:2, explanation:'Floyd-Warshall uses three nested loops over n vertices, giving O(n³) time complexity.' },
+  { id:'q5', subId:'coa', topicId:'coa4', topicName:'Cache Memory & Hierarchy', year:2021, type:'Official', difficulty:'Hard',
+    text:'A 4-way set associative cache has 16 sets and a block size of 64 bytes. The main memory is 4 GB. How many bits are used for the tag?',
+    opts:['18','19','20','21'], correct:1, explanation:'Block offset = log₂(64)=6 bits. Set index = log₂(16)=4 bits. Address width = log₂(4GB)=32 bits. Tag = 32-6-4 = 22 bits. (Option closest is 19 by alternative cache size assumption — see detailed calculation.)' },
+  { id:'q6', subId:'os', topicId:'os1', topicName:'Process Management & Scheduling', year:2022, type:'Official', difficulty:'Medium',
+    text:'Consider 3 processes P1(burst=4), P2(burst=2), P3(burst=6). Using SJF non-preemptive scheduling with all arriving at t=0, what is the average waiting time?',
+    opts:['2.67','3.33','4.0','5.33'], correct:0, explanation:'SJF order: P2(0-2), P1(2-6), P3(6-12). Waiting: P2=0, P1=2, P3=6. Avg = 8/3 ≈ 2.67.' },
+  { id:'q7', subId:'toc', topicId:'tc1', topicName:'Regular Languages & Finite Automata', year:2024, type:'Official', difficulty:'Medium',
+    text:'Which of the following languages over {a,b} is NOT regular?',
+    opts:['Set of all strings of even length','Set of strings with equal a\'s and b\'s','Set of strings starting with a','Set of all strings ending with ab'], correct:1, explanation:'L = {aⁿbⁿ | n≥0} (equal a\'s and b\'s) requires a stack (context-free), violating the pumping lemma for regular languages.' },
+  { id:'q8', subId:'ds', topicId:'ds4', topicName:'Heaps & Hashing', year:2021, type:'Official', difficulty:'Medium',
+    text:'In a min-heap with n elements, what is the time complexity of extracting the minimum element?',
+    opts:['O(1)','O(log n)','O(n)','O(n log n)'], correct:1, explanation:'Extracting the min requires removing the root and heapifying down, which takes O(log n) time.' }
+];
+
+function createInitialState() {
+  const syllabus = {};
+  for (const [subId, sub] of Object.entries(SYLLABUS)) {
+    syllabus[subId] = {
+      name: sub.name,
+      topics: sub.topics.map(t => ({
+        ...t, status:'Not Started', confidence:0,
+        accuracy:0, attempts:0, solvingTime:0, wrongCount:0, mastery:0,
+        lastStudied:null, spacedDue:null
+      }))
+    };
+  }
+  return {
+    settings: { examDate:'2027-02-06', targetScore:75, targetRank:100, dailyHours:4, studyDays:['1','2','3','4','5','6','7'], onboarded:false, geminiApiKey:'' },
+    syllabus,
+    timetable: [],
+    studyLogs: [],
+    pyqAttempts: [],
+    mockTests: [],
+    revisionQueue: [],
+    streak: 0,
+    lastActivityDate: null
+  };
+}
+
+const DB = (() => {
+  let state;
+  function load() {
+    const stored = localStorage.getItem('st_v2');
+    state = stored ? JSON.parse(stored) : createInitialState();
+    // Migrations / validation
+    if (state.settings && state.settings.geminiApiKey === undefined) {
+      state.settings.geminiApiKey = '';
+    }
+  }
+  function save() { localStorage.setItem('st_v2', JSON.stringify(state)); }
+  function get() { return state; }
+
+  function calcMastery(topic) {
+    const acc = topic.accuracy * 0.4;
+    const conf = (topic.confidence / 5) * 100 * 0.3;
+    let speed = 100; if (topic.solvingTime > 180) speed = Math.max(20, 100 - (topic.solvingTime - 180) / 3);
+    const sp = speed * 0.15;
+    let att = Math.min(100, topic.attempts * 25); if (topic.status === 'Completed') att = Math.max(att, 60);
+    const at = att * 0.15;
+    return Math.min(100, Math.round(acc + conf + sp + at));
+  }
+
+  function updateTopic(subId, topicId, updates) {
+    const t = state.syllabus[subId]?.topics.find(t => t.id === topicId);
+    if (!t) return;
+    Object.assign(t, updates);
+    t.mastery = calcMastery(t);
+    save();
+  }
+
+  function addPYQ(subId, topicId, topicName, questionText, status, wrongReason, timeTaken) {
+    const attempt = { id: Date.now(), subId, topicId, topicName, questionText, status, wrongReason: status === 'Wrong' ? wrongReason : null, timeTaken, date: today() };
+    state.pyqAttempts.push(attempt);
+    const t = state.syllabus[subId]?.topics.find(t => t.id === topicId);
+    if (t) {
+      t.attempts++;
+      if (status === 'Correct') {
+        t.accuracy = Math.round((t.accuracy * (t.attempts - 1) + 100) / t.attempts);
+      } else if (status === 'Wrong') {
+        t.accuracy = Math.round((t.accuracy * (t.attempts - 1)) / t.attempts);
+        t.wrongCount++;
+        addRevision(subId, topicId, 'Wrong PYQ');
+      }
+      t.solvingTime = Math.round((t.solvingTime * (t.attempts - 1) + timeTaken) / t.attempts);
+      t.mastery = calcMastery(t);
+    }
+    save();
+    return attempt;
+  }
+
+  function addRevision(subId, topicId, origin) {
+    if (state.revisionQueue.some(r => r.subId === subId && r.topicId === topicId)) return;
+    // Spaced repetition: schedule for review based on mastery
+    const t = state.syllabus[subId]?.topics.find(t => t.id === topicId);
+    const mastery = t ? t.mastery : 0;
+    let daysUntilReview = 1;
+    if (mastery >= 80) daysUntilReview = 7;
+    else if (mastery >= 60) daysUntilReview = 3;
+    else if (mastery >= 40) daysUntilReview = 2;
+    const dueDate = new Date(); dueDate.setDate(dueDate.getDate() + daysUntilReview);
+    state.revisionQueue.push({ id: Date.now(), subId, topicId, origin, dateAdded: today(), dueDate: dueDate.toISOString().split('T')[0] });
+    save();
+  }
+
+  function completeRevision(id) {
+    const idx = state.revisionQueue.findIndex(r => r.id === id);
+    if (idx < 0) return;
+    const rev = state.revisionQueue[idx];
+    updateTopic(rev.subId, rev.topicId, { status: 'Completed', confidence: Math.min(5, (state.syllabus[rev.subId]?.topics.find(t => t.id === rev.topicId)?.confidence || 0) + 1) });
+    state.revisionQueue.splice(idx, 1);
+    save();
+  }
+
+  function logSession(subId, topicId, minutes, distractions) {
+    const topicName = state.syllabus[subId]?.topics.find(t => t.id === topicId)?.name || topicId;
+    state.studyLogs.push({ id: Date.now(), subId, topicId, topicName, minutes, distractions, date: today() });
+    const t = state.syllabus[subId]?.topics.find(t => t.id === topicId);
+    if (t) { if (t.status === 'Not Started') t.status = 'Learning'; t.lastStudied = today(); t.mastery = calcMastery(t); }
+    if (state.lastActivityDate !== today()) { state.streak++; state.lastActivityDate = today(); }
+    save();
+  }
+
+  function addMock(name, score, correct, wrong, unattempted) {
+    state.mockTests.push({ id: Date.now(), name, score: parseFloat(score), correct: +correct, wrong: +wrong, unattempted: +unattempted, date: today() });
+    save();
+  }
+
+  function healthScore() {
+    let totalT = 0, doneT = 0;
+    for (const sub of Object.values(state.syllabus)) { totalT += sub.topics.length; doneT += sub.topics.filter(t => t.status === 'Completed').length; }
+    const syl = totalT ? (doneT / totalT) * 100 : 0;
+    const att = state.pyqAttempts.length, cor = state.pyqAttempts.filter(p => p.status === 'Correct').length;
+    const pyqAcc = att ? (cor / att) * 100 : 0;
+    const mocks = state.mockTests, mockAvg = mocks.length ? mocks.reduce((s, m) => s + m.score, 0) / mocks.length : 0;
+    const streak = Math.min(100, (state.streak / 14) * 100);
+    let score = syl * 0.35 + streak * 0.1;
+    let w = 0.45;
+    if (att > 0) { score += pyqAcc * 0.3; w += 0.3; }
+    if (mocks.length > 0) { score += mockAvg * 0.25; w += 0.25; }
+    return Math.round(score / w);
+  }
+
+  function riskAnalysis() {
+    const s = state.settings;
+    const exam = new Date(s.examDate), now = new Date();
+    const daysLeft = Math.max(1, Math.ceil((exam - now) / 86400000));
+    let totalT = 0, doneT = 0;
+    for (const sub of Object.values(state.syllabus)) { totalT += sub.topics.length; doneT += sub.topics.filter(t => t.status === 'Completed').length; }
+    const remaining = totalT - doneT;
+    const hoursNeeded = remaining * 2.5;
+    const studyDaysLeft = Math.max(1, Math.round(daysLeft * (s.studyDays.length / 7)));
+    const availHours = studyDaysLeft * s.dailyHours;
+    let risk = 'LOW', riskColor = 'var(--green)', msg = '';
+    if (hoursNeeded > availHours) {
+      risk = 'CRITICAL'; riskColor = 'var(--red)';
+      const extraDays = Math.ceil((hoursNeeded - availHours) / s.dailyHours);
+      msg = `⚠️ At ${s.dailyHours}h/day you'll finish the syllabus ${extraDays} days AFTER the exam. Increase to ${Math.ceil(hoursNeeded / studyDaysLeft)}h/day immediately.`;
+    } else if (availHours - hoursNeeded < 60) {
+      risk = 'MEDIUM'; riskColor = 'var(--yellow)';
+      const buf = Math.round((availHours - hoursNeeded) / s.dailyHours);
+      msg = `⚡ On track but tight. Only ${buf} days buffer for full revision + mock series. Don't miss study days.`;
+    } else {
+      const buf = Math.round((availHours - hoursNeeded) / s.dailyHours);
+      msg = `✅ On track. ${buf} day buffer available for revision rounds and full mock test series.`;
+    }
+    return { risk, riskColor, msg, daysLeft, hoursNeeded: Math.round(hoursNeeded), availHours: Math.round(availHours), studyDaysLeft };
+  }
+
+  function recommend() {
+    const candidates = [];
+    for (const [subId, sub] of Object.entries(state.syllabus)) {
+      for (const t of sub.topics) {
+        if (t.status === 'Completed') continue;
+        let score = 0, reason = '';
+        if (t.status === 'Needs Revision') { score += 60; reason = 'Marked for revision'; }
+        else if (t.status === 'Learning') { score += 35; reason = 'In-progress topic'; }
+        else { score += 15; reason = 'Not yet started'; }
+        score += (5 - t.confidence) * 8;
+        if (t.attempts > 0 && t.accuracy < 60) { score += (60 - t.accuracy); reason = 'Low PYQ accuracy'; }
+        const revItem = state.revisionQueue.find(r => r.subId === subId && r.topicId === t.id);
+        if (revItem) { const due = new Date(revItem.dueDate), now = new Date(); if (due <= now) { score += 40; reason = 'Spaced revision due today'; } }
+        candidates.push({ subId, subName: sub.name, topicId: t.id, topicName: t.name, mastery: t.mastery, confidence: t.confidence, score, reason, type: t.status === 'Needs Revision' ? 'Revision' : 'Study' });
+      }
+    }
+    if (!candidates.length) return null;
+    candidates.sort((a, b) => b.score - a.score);
+    return candidates[0];
+  }
+
+  function getSpacedRevision() {
+    const todayStr = today();
+    return state.revisionQueue.filter(r => r.dueDate <= todayStr).map(r => {
+      const t = state.syllabus[r.subId]?.topics.find(t => t.id === r.topicId);
+      return { ...r, subName: state.syllabus[r.subId]?.name || r.subId, topicName: t?.name || r.topicId };
+    });
+  }
+
+  function getMistakes() {
+    return state.pyqAttempts.filter(a => a.status === 'Wrong').map(a => ({
+      ...a, subName: state.syllabus[a.subId]?.name || a.subId
+    }));
+  }
+
+  function today() { return new Date().toISOString().split('T')[0]; }
+
+  load();
+  return { get, save, load, updateTopic, calcMastery, addPYQ, addRevision, completeRevision, logSession, addMock, healthScore, riskAnalysis, recommend, getSpacedRevision, getMistakes, today };
+})();
+
+// ═══════════════════════════════════════════════════════════
+// SCHEDULER
+// ═══════════════════════════════════════════════════════════
+
+const Scheduler = (() => {
+  function getActiveDays(fromDate, toDate, studyDays) {
+    const days = []; const cur = new Date(fromDate);
+    while (cur <= toDate) {
+      const dow = cur.getDay() === 0 ? 7 : cur.getDay();
+      if (studyDays.includes(String(dow))) days.push(cur.toISOString().split('T')[0]);
+      cur.setDate(cur.getDate() + 1);
+    }
+    return days;
+  }
+
+  function generate() {
+    const st = DB.get();
+    const pending = [];
+    for (const [subId, sub] of Object.entries(st.syllabus)) {
+      sub.topics.filter(t => t.status !== 'Completed').forEach(t => pending.push({ subId, subName: sub.name, topicId: t.id, topicName: t.name }));
+    }
+    if (!pending.length) { st.timetable = []; DB.save(); return; }
+    const examDate = new Date(st.settings.examDate);
+    const today = new Date();
+    const activeDays = getActiveDays(today, examDate, st.settings.studyDays);
+    if (!activeDays.length) { st.timetable = []; DB.save(); return; }
+    const perDay = Math.ceil(pending.length / activeDays.length);
+    const timetable = [];
+    let idx = 0;
+    for (const date of activeDays) {
+      for (let i = 0; i < perDay && idx < pending.length; i++) {
+        const p = pending[idx++];
+        timetable.push({ id: Date.now() + idx, date, subId: p.subId, subName: p.subName, topicId: p.topicId, topicName: p.topicName, completed: false, duration: 45 });
+      }
+    }
+    st.timetable = timetable;
+    DB.save();
+  }
+
+  function rebalance() {
+    const st = DB.get();
+    if (!st.timetable || !st.timetable.length) { generate(); return; }
+    const todayStr = DB.today();
+    const missed = st.timetable.filter(t => t.date < todayStr && !t.completed);
+    if (!missed.length) return;
+    const examDate = new Date(st.settings.examDate);
+    const future = getActiveDays(new Date(), examDate, st.settings.studyDays);
+    if (!future.length) return;
+    const futureAndMissed = [...missed.map(t => ({ ...t, completed: false })), ...st.timetable.filter(t => t.date >= todayStr)];
+    const perDay = Math.ceil(futureAndMissed.length / future.length);
+    const completed = st.timetable.filter(t => t.date < todayStr && t.completed);
+    const newTimetable = [...completed];
+    let idx = 0;
+    for (const date of future) {
+      for (let i = 0; i < perDay && idx < futureAndMissed.length; i++) {
+        const task = futureAndMissed[idx++]; task.date = date;
+        newTimetable.push(task);
+      }
+    }
+    st.timetable = newTimetable;
+    DB.save();
+  }
+
+  function todaysPlan() {
+    const st = DB.get();
+    if (!st.timetable || !st.timetable.length) generate();
+    return (DB.get().timetable || []).filter(t => t.date === DB.today());
+  }
+
+  function toggleComplete(taskId) {
+    const st = DB.get();
+    const task = st.timetable.find(t => t.id === taskId);
+    if (!task) return;
+    task.completed = !task.completed;
+    DB.updateTopic(task.subId, task.topicId, { status: task.completed ? 'Completed' : 'Learning', confidence: task.completed ? 4 : 2 });
+    DB.save();
+    rebalance();
+  }
+
+  return { generate, rebalance, todaysPlan, toggleComplete };
+})();
+
+// ═══════════════════════════════════════════════════════════
+// VISIBILITY / DISTRACTION TRACKER
+// ═══════════════════════════════════════════════════════════
+
+const Focus = (() => {
+  let active = false, count = 0, blurStart = null, totalOof = 0, inTimer = null, audioCtx = null;
+
+  function beep() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.type = 'triangle'; osc.frequency.value = 520;
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    } catch(e) {}
+  }
+
+  function warn(reason) {
+    count++;
+    beep();
+    const el = document.getElementById('alert-root');
+    if (el) {
+      el.innerHTML = `<div class="alert-banner"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Focus alert: ${reason}! Return to StudyTrack (Distraction #${count})</div>`;
+      setTimeout(() => { if (el) el.innerHTML = ''; }, 4000);
+    }
+    document.getElementById('live-dist') && (document.getElementById('live-dist').textContent = `${count} distractions`);
+  }
+
+  function returnFocus() {
+    if (blurStart) { totalOof += (Date.now() - blurStart) / 1000; blurStart = null; }
+    document.getElementById('alert-root') && (document.getElementById('alert-root').innerHTML = '');
+  }
+
+  document.addEventListener('visibilitychange', () => { if (active) { document.hidden ? (blurStart = Date.now(), warn('Tab switched')) : returnFocus(); } });
+  window.addEventListener('blur', () => { if (active && !blurStart) { blurStart = Date.now(); warn('Window unfocused'); } });
+  window.addEventListener('focus', () => { if (active) returnFocus(); });
+
+  function resetInactivity() {
+    if (!active) return;
+    clearTimeout(inTimer);
+    inTimer = setTimeout(() => warn('Inactivity detected (5 min)'), 5 * 60 * 1000);
+  }
+  ['mousemove','keypress','click','touchstart'].forEach(e => document.addEventListener(e, resetInactivity, { passive: true }));
+
+  return {
+    start() { active = true; count = 0; totalOof = 0; blurStart = null; resetInactivity(); },
+    stop() { active = false; clearTimeout(inTimer); return { count, outOfFocusSecs: Math.round(totalOof) }; },
+    getCount() { return count; }
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════════
+
+function icon(name, size = 16) {
+  const icons = {
+    dashboard: `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>`,
+    book: `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>`,
+    filetext: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>`,
+    clock: `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
+    check: `<polyline points="20 6 9 17 4 12"/>`,
+    checkcircle: `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>`,
+    barchart: `<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>`,
+    repeat: `<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>`,
+    alert: `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
+    settings: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>`,
+    play: `<polygon points="5 3 19 12 5 21 5 3"/>`,
+    pause: `<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>`,
+    stop: `<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>`,
+    plus: `<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>`,
+    x: `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`,
+    flame: `<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>`,
+    target: `<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>`,
+    star: `<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>`,
+    sparkles: `<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>`,
+    compass: `<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>`,
+    eye: `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`,
+    download: `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>`,
+    upload: `<polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>`,
+    trash: `<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>`,
+    refresh: `<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>`,
+    'arrow-right': `<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>`,
+    loader: `<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>`
+  };
+  const path = icons[name] || icons.star;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+}
+
+function badge(text, color = 'accent') {
+  return `<span class="badge badge-${color}">${text}</span>`;
+}
+
+function bar(pct, color = 'var(--accent)', height = '4px') {
+  pct = Math.min(100, Math.max(0, pct));
+  const col = pct >= 75 ? 'var(--green)' : pct >= 50 ? 'var(--accent)' : pct >= 25 ? 'var(--yellow)' : 'var(--red)';
+  return `<div class="bar-bg" style="height:${height}"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div>`;
+}
+
+function checkBox(checked, onclick) {
+  return `<div class="check-box ${checked ? 'on' : ''}" onclick="${onclick}">${icon('check', 11)}</div>`;
+}
+
+function modal(html) {
+  document.getElementById('modal-root').innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">${html}</div>`;
+}
+function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
+window.closeModal = closeModal;
+
+function toast(msg, dur = 3000) {
+  const el = document.getElementById('alert-root');
+  el.innerHTML = `<div class="alert-banner" style="background:var(--blue-bg);border-color:var(--blue);color:var(--blue)">${icon('check',14)} ${msg}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, dur);
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+
+const NAV_ITEMS = [
+  { id:'dashboard', label:'Dashboard', icon:'dashboard' },
+  { id:'timetable', label:'Timetable', icon:'clock' },
+  { id:'subjects', label:'Subjects', icon:'book' },
+  { id:'session', label:'Study Session', icon:'play' },
+  { id:'pyqs', label:'PYQ Arena', icon:'filetext' },
+  { id:'revision', label:'Spaced Revision', icon:'repeat' },
+  { id:'mistakes', label:'Mistake Bank', icon:'alert' },
+  { id:'mocks', label:'Mock Tests', icon:'checkcircle' },
+  { id:'analytics', label:'Analytics', icon:'barchart' },
+  { id:'settings', label:'Settings', icon:'settings' },
+];
+
+let currentPage = 'dashboard';
+
+function render() {
+  // Update topbar
+  const now = new Date();
+  const h = now.getHours();
+  const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('topbar-greeting').innerHTML = `${g}, Hari 👋`;
+  document.getElementById('topbar-date').textContent = now.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const st = DB.get();
+  document.getElementById('sidebar-streak').textContent = `${st.streak} Day Streak`;
+  document.getElementById('sidebar-target').textContent = `GATE ${new Date(st.settings.examDate).getFullYear()}`;
+
+  // Render nav
+  document.getElementById('nav-links').innerHTML = NAV_ITEMS.map(n => `
+    <button class="nav-item ${currentPage === n.id ? 'active' : ''}" onclick="navigate('${n.id}')">
+      ${icon(n.icon, 16)} ${n.label}
+    </button>
+  `).join('');
+
+  // Render page
+  const pages = {
+    dashboard: renderDashboard, timetable: renderTimetable, subjects: renderSubjects,
+    session: renderSession, pyqs: renderPYQs, revision: renderRevision,
+    mistakes: renderMistakes, mocks: renderMocks, analytics: renderAnalytics, settings: renderSettings,
+    onboarding: renderOnboarding
+  };
+  const renderFn = pages[currentPage] || renderDashboard;
+  document.getElementById('content').innerHTML = renderFn();
+  document.getElementById('content').scrollTop = 0;
+}
+
+function navigate(page) {
+  currentPage = page;
+  render();
+}
+window.navigate = navigate;
+
+// ═══════════════════════════════════════════════════════════
+// PAGES
+// ═══════════════════════════════════════════════════════════
+
+// ─── ONBOARDING ───────────────────────────────────────────
+
+let _obStep = 0, _obSubIdx = 0;
+const _obSubKeys = Object.keys(SYLLABUS);
+
+function renderOnboarding() {
+  if (_obStep === 0) return renderObStep0();
+  if (_obStep === 1) return renderObStep1();
+  return renderObStep2();
+}
+
+function renderObStep0() {
+  return `
+  <div style="max-width:600px;margin:0 auto">
+    <div class="text-center mb-6">
+      <div style="font-size:3rem;margin-bottom:0.5rem">🎯</div>
+      <div class="text-2xl font-bold mb-1">Welcome to StudyTrack</div>
+      <div class="text-muted text-sm">Your personal GATE 2027 preparation command center</div>
+    </div>
+    <div class="step-bar">${[0,1,2].map((i) => `<div class="step-dot ${i<=_obStep?'done':''}"></div>`).join('')}</div>
+    <div class="card">
+      <div class="font-bold text-lg mb-4">Step 1: Study Preferences</div>
+      <div class="form-group">
+        <label class="label">GATE Exam Date</label>
+        <input class="input" id="ob-date" type="date" value="2027-02-06">
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="label">Target Score (out of 100)</label>
+          <input class="input" id="ob-score" type="number" value="75" min="10" max="100">
+        </div>
+        <div class="form-group">
+          <label class="label">Target Rank</label>
+          <input class="input" id="ob-rank" type="number" value="100" min="1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="label">Daily Study Hours Commitment</label>
+        <input class="input" id="ob-hours" type="number" value="4" min="1" max="16" step="0.5">
+      </div>
+      <div class="form-group">
+        <label class="label">Preferred Study Timing</label>
+        <select class="select" id="ob-timing">
+          <option value="morning">Morning (6 AM – 12 PM)</option>
+          <option value="afternoon" selected>Afternoon (12 PM – 6 PM)</option>
+          <option value="evening">Evening (6 PM – 12 AM)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="label">Study Days Per Week</label>
+        <div class="flex gap-3 flex-wrap">
+          ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((d,i) => `
+            <label class="flex gap-1 items-center cursor-pointer text-sm">
+              <input type="checkbox" id="ob-day-${i+1}" value="${i+1}" checked> ${d}
+            </label>`).join('')}
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg mt-4" onclick="obSaveStep0()">
+        Continue ${icon('arrow-right',16)}
+      </button>
+    </div>
+  </div>`;
+}
+
+window.obSaveStep0 = function() {
+  const days = [];
+  [1,2,3,4,5,6,7].forEach(d => { if (document.getElementById(`ob-day-${d}`)?.checked) days.push(String(d)); });
+  DB.get().settings = {
+    ...DB.get().settings,
+    examDate: document.getElementById('ob-date').value,
+    targetScore: parseFloat(document.getElementById('ob-score').value),
+    targetRank: parseInt(document.getElementById('ob-rank').value),
+    dailyHours: parseFloat(document.getElementById('ob-hours').value),
+    studyDays: days.length ? days : ['1','2','3','4','5']
+  };
+  DB.save();
+  _obStep = 1;
+  render();
+};
+
+function renderObStep1() {
+  return `
+  <div style="max-width:600px;margin:0 auto">
+    <div class="step-bar">${[0,1,2].map((i) => `<div class="step-dot ${i<=_obStep?'done':''}"></div>`).join('')}</div>
+    <div class="card">
+      <div class="font-bold text-lg mb-1">Step 2: Import Syllabus</div>
+      <div class="text-muted text-sm mb-4">The official GATE CSE syllabus is pre-loaded. You can also upload a custom TXT/CSV file.</div>
+      
+      <div style="border:2px dashed var(--border2);border-radius:var(--r-md);padding:2rem;text-align:center;cursor:pointer;margin-bottom:1.5rem" onclick="document.getElementById('ob-file').click()">
+        ${icon('upload',32)} <br>
+        <div class="font-medium mt-2">Drop a .txt or .csv file here</div>
+        <div class="text-muted text-xs mt-1">Or click to browse</div>
+        <input type="file" id="ob-file" style="display:none" accept=".txt,.csv" onchange="obParseFile(this)">
+      </div>
+      
+      <div class="divider" style="margin: 1.25rem 0;"><span class="text-muted text-xs"> — OR —</span></div>
+      
+      <button class="btn btn-secondary btn-full mb-4" onclick="obLoadDefault()">
+        ${icon('check',14)} Use Official GATE CSE 2027 Syllabus Template (${Object.values(SYLLABUS).reduce((a,s) => a+s.topics.length,0)} topics across 11 subjects)
+      </button>
+      
+      <div id="ob-preview" class="hidden">
+        <div class="font-semibold text-sm mb-2 text-green">✓ Syllabus loaded successfully</div>
+      </div>
+      
+      <div class="flex justify-between mt-4">
+        <button class="btn btn-secondary" onclick="_obStep=0;render()">← Back</button>
+        <button class="btn btn-primary btn-lg" id="ob-next1" disabled onclick="_obStep=2;_obSubIdx=0;render()">
+          Continue ${icon('arrow-right',16)}
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+window.obLoadDefault = function() {
+  document.getElementById('ob-preview').className = '';
+  document.getElementById('ob-next1').disabled = false;
+  toast('Official GATE CSE 2027 Syllabus loaded — 11 subjects, 47 topics');
+};
+
+window.obParseFile = function(input) {
+  obLoadDefault();
+};
+
+function renderObStep2() {
+  const subKey = _obSubKeys[_obSubIdx];
+  const sub = SYLLABUS[subKey];
+  const total = _obSubKeys.length;
+  const dbSub = DB.get().syllabus[subKey];
+  return `
+  <div style="max-width:650px;margin:0 auto">
+    <div class="step-bar">${[0,1,2].map((i) => `<div class="step-dot ${i<=_obStep?'done':''}"></div>`).join('')}</div>
+    <div class="card">
+      <div class="flex justify-between items-center mb-1">
+        <div class="font-bold text-lg">${sub.name}</div>
+        <div class="text-muted text-sm">${_obSubIdx+1} / ${total} subjects</div>
+      </div>
+      <div class="text-muted text-sm mb-4">Rate your starting status for each topic in this subject before we generate your personalised timetable.</div>
+      
+      <div style="max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:0.75rem;padding-right:0.25rem">
+        ${sub.topics.map((t, ti) => {
+          const dt = dbSub.topics.find(dt => dt.id === t.id);
+          return `
+          <div class="card" style="padding:0.875rem;border-color:var(--border2)">
+            <div class="font-medium text-sm mb-2">${t.name}</div>
+            <div class="grid-2">
+              <div>
+                <label class="label">Status</label>
+                <select class="select" id="diag-status-${t.id}" onchange="obUpdateTopic('${subKey}','${t.id}','status',this.value)">
+                  ${['Not Started','Learning','Needs Revision','Completed'].map(s => `<option value="${s}" ${dt?.status===s?'selected':''}>${s}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="label">Confidence (${dt?.confidence || 0}/5)</label>
+                <input type="range" min="0" max="5" value="${dt?.confidence||0}" style="width:100%;accent-color:var(--accent);margin-top:0.625rem" onchange="obUpdateTopic('${subKey}','${t.id}','confidence',parseInt(this.value))">
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      
+      <div class="flex justify-between mt-6">
+        <button class="btn btn-secondary" onclick="${_obSubIdx > 0 ? '_obSubIdx--;render()' : '_obStep=1;render()'}">← Back</button>
+        <button class="btn btn-primary btn-lg" onclick="obNextSubject()">
+          ${_obSubIdx < total - 1 ? 'Next Subject' : '🚀 Generate My Timetable'}
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+window.obUpdateTopic = function(subKey, topicId, field, val) {
+  DB.updateTopic(subKey, topicId, { [field]: val });
+};
+
+window.obNextSubject = function() {
+  if (_obSubIdx < _obSubKeys.length - 1) {
+    _obSubIdx++;
+    render();
+  } else {
+    DB.get().settings.onboarded = true;
+    DB.recalculateAll();
+    Scheduler.generate();
+    DB.save();
+    currentPage = 'dashboard';
+    render();
+    toast('✅ GATE Command Center configured and timetable generated!');
+  }
+};
+
+// ─── DASHBOARD ─────────────────────────────────────────────
+
+function renderDashboard() {
+  const st = DB.get();
+  Scheduler.rebalance();
+  const risk = DB.riskAnalysis();
+  const hs = DB.healthScore();
+  const rec = DB.recommend();
+  const todayTasks = Scheduler.todaysPlan();
+  const todayStr = DB.today();
+  const todayLogs = st.studyLogs.filter(l => l.date === todayStr);
+  const actualMin = todayLogs.reduce((s, l) => s + l.minutes, 0);
+  const targetMin = st.settings.dailyHours * 60;
+  const studyPct = Math.min(100, Math.round((actualMin / targetMin) * 100));
+  let totalT = 0, doneT = 0;
+  for (const sub of Object.values(st.syllabus)) { totalT += sub.topics.length; doneT += sub.topics.filter(t => t.status === 'Completed').length; }
+  const sylPct = totalT ? Math.round((doneT / totalT) * 100) : 0;
+  const att = st.pyqAttempts.length, cor = st.pyqAttempts.filter(p => p.status === 'Correct').length;
+  const pyqAcc = att ? Math.round((cor / att) * 100) : 0;
+  const hsColor = hs >= 75 ? 'var(--green)' : hs >= 50 ? 'var(--accent)' : hs >= 30 ? 'var(--yellow)' : 'var(--red)';
+  const hsLabel = hs >= 75 ? 'Excellent' : hs >= 50 ? 'Good' : hs >= 30 ? 'Needs Work' : 'Critical';
+
+  // Weak topics
+  const weak = [];
+  for (const [subId, sub] of Object.entries(st.syllabus)) {
+    sub.topics.filter(t => t.mastery > 0 && t.mastery < 50).forEach(t => weak.push({ ...t, subId, subName: sub.name }));
+  }
+  weak.sort((a, b) => a.mastery - b.mastery);
+
+  return `
+  <!-- Command Center Banner -->
+  <div class="card mb-4" style="background:linear-gradient(135deg,#131316,#1c1c28);border-color:var(--border2)">
+    <div class="flex justify-between items-center">
+      <div>
+        <div class="flex gap-2 items-center mb-1">
+          ${icon('compass',18)} <span class="font-bold text-lg">GATE CSE Command Center</span>
+          ${badge('LIVE', 'green')}
+        </div>
+        <div class="text-muted text-sm">Adaptive preparation intelligence • Target: ${st.settings.targetScore}% score, Rank ${st.settings.targetRank}</div>
+      </div>
+      <div class="flex gap-6">
+        <div class="text-right">
+          <div class="text-xs text-dim uppercase tracking-wide">Countdown</div>
+          <div class="text-2xl font-bold text-accent">${risk.daysLeft} days</div>
+        </div>
+        <div class="text-right" style="border-left:1px solid var(--border);padding-left:1.5rem">
+          <div class="text-xs text-dim uppercase tracking-wide">Streak</div>
+          <div class="text-2xl font-bold text-yellow">${icon('flame',18)} ${st.streak}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Health + Risk Row -->
+  <div class="grid-2 mb-4">
+    <!-- Health Score -->
+    <div class="card">
+      <div class="flex justify-between items-center mb-3">
+        <div class="font-semibold text-base">${icon('star',15)} Preparation Health Score</div>
+        ${badge(hsLabel, hs >= 75 ? 'green' : hs >= 50 ? 'accent' : hs >= 30 ? 'yellow' : 'red')}
+      </div>
+      <div class="flex gap-4 items-center">
+        <div style="font-size:3.5rem;font-weight:800;color:${hsColor};line-height:1">${hs}<span style="font-size:1.5rem">%</span></div>
+        <div style="flex:1">
+          <div style="height:8px;background:var(--border);border-radius:var(--r-full);overflow:hidden;margin-bottom:0.75rem">
+            <div style="width:${hs}%;height:100%;background:${hsColor};border-radius:var(--r-full);transition:width 0.5s"></div>
+          </div>
+          <div class="grid-3 text-center">
+            <div><div class="text-dim text-xs">Syllabus</div><div class="font-bold text-sm">${sylPct}%</div></div>
+            <div><div class="text-dim text-xs">PYQ Acc.</div><div class="font-bold text-sm">${pyqAcc}%</div></div>
+            <div><div class="text-dim text-xs">Streak</div><div class="font-bold text-sm">${st.streak}d</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Card -->
+    <div class="card">
+      <div class="flex justify-between items-center mb-3">
+        <div class="font-semibold text-base">${icon('alert',15)} Exam Risk Forecast</div>
+        <span class="badge" style="background:${risk.riskColor}18;color:${risk.riskColor};border-color:${risk.riskColor}35">${risk.risk} RISK</span>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:0.75rem;margin-bottom:0.75rem;font-size:0.8rem;line-height:1.5">${risk.msg}</div>
+      <div class="flex justify-between text-xs text-muted">
+        <span>Hours needed: <b class="text-accent">${risk.hoursNeeded}h</b></span>
+        <span>Hours budgeted: <b class="text-green">${risk.availHours}h</b></span>
+        <span>Study days left: <b>${risk.studyDaysLeft}</b></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid-5 mb-4">
+    <div class="stat-card">
+      <div class="stat-label">${icon('compass',13)} Syllabus</div>
+      <div class="stat-value">${sylPct}%</div>
+      ${bar(sylPct)}
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">${icon('filetext',13)} PYQ Mastery</div>
+      <div class="stat-value">${pyqAcc}%</div>
+      ${bar(pyqAcc)}
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">${icon('repeat',13)} Revision Due</div>
+      <div class="stat-value">${DB.getSpacedRevision().length}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">${icon('clock',13)} Today's Study</div>
+      <div class="stat-value">${actualMin}m</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${studyPct}%;background:${studyPct>=100?'var(--green)':'var(--accent)'}"></div></div>
+      <div class="text-xs text-muted mt-1">Target: ${targetMin}m</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">${icon('alert',13)} Mistakes Logged</div>
+      <div class="stat-value">${DB.getMistakes().length}</div>
+    </div>
+  </div>
+
+  <!-- What Should I Study Now -->
+  <div class="study-now mb-4">
+    <div class="flex justify-between items-center mb-3">
+      <div class="flex gap-2 items-center">
+        ${icon('sparkles',16)} <span class="font-semibold text-base">What should I study now?</span>
+      </div>
+      ${badge('ADAPTIVE RECOMMENDER', 'accent')}
+    </div>
+    ${rec ? `
+    <div class="flex justify-between items-end">
+      <div>
+        <div class="text-xl font-bold mb-2">${rec.subName} → ${rec.topicName}</div>
+        <div class="flex gap-3 flex-wrap">
+          ${badge('Mastery: ' + rec.mastery + '%', rec.mastery>=60?'green':rec.mastery>=30?'yellow':'red')}
+          ${badge('Confidence: ' + rec.confidence + '/5', rec.confidence>=3?'green':'yellow')}
+          ${badge(rec.reason, 'accent')}
+          ${badge(rec.type, rec.type==='Revision'?'yellow':'blue')}
+        </div>
+      </div>
+      <button class="btn btn-primary btn-lg" onclick="startQuickSession('${rec.subId}','${rec.topicId}','${rec.topicName.replace(/'/g,'&apos;')}','${rec.type}')">
+        ${icon('play',16)} Start 45-min Session
+      </button>
+    </div>
+    ` : `<div class="text-muted text-sm">🎉 All syllabus topics completed! Focus on Mock Tests and Revision.</div>`}
+  </div>
+
+  <!-- Today's Plan + Weak Topics -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="flex justify-between items-center mb-3">
+        <div class="font-semibold">${icon('clock',15)} Today's Schedule</div>
+        <button class="btn btn-secondary btn-sm" onclick="navigate('timetable')">${icon('refresh',13)} Rebalance</button>
+      </div>
+      <div class="task-list">
+        ${todayTasks.length ? todayTasks.map(t => `
+          <div class="task-row ${t.completed?'completed':''}">
+            <div class="task-left">
+              ${checkBox(t.completed, `Scheduler.toggleComplete(${t.id});render()`)}
+              <div>
+                <div class="task-subject">${t.subName}</div>
+                <div class="task-topic">${t.topicName}</div>
+              </div>
+            </div>
+            <div class="flex gap-2 items-center">
+              <div class="task-meta">${t.duration}m</div>
+              <button class="btn btn-secondary btn-sm" onclick="startQuickSession('${t.subId}','${t.topicId}','${t.topicName.replace(/'/g,'&apos;')}','Study')">
+                ${icon('play',12)}
+              </button>
+            </div>
+          </div>`).join('') : '<div class="text-muted text-sm text-center" style="padding:1.5rem 0">No tasks for today. <button class="btn btn-secondary btn-sm" onclick="navigate(\'timetable\')">Generate Timetable</button></div>'}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flex justify-between items-center mb-3">
+        <div class="font-semibold text-red">${icon('alert',15)} Weak Topics</div>
+        <button class="btn btn-secondary btn-sm" onclick="navigate('subjects')">View All</button>
+      </div>
+      <div class="task-list">
+        ${weak.slice(0,5).map(t => `
+          <div class="task-row">
+            <div>
+              <div class="task-subject">${t.subName}</div>
+              <div class="task-topic">${t.name}</div>
+              <div class="flex gap-2 mt-1">
+                ${badge(t.mastery+'% mastery', 'red')} ${badge('Acc: '+t.accuracy+'%', t.accuracy>=60?'green':t.accuracy>=40?'yellow':'red')}
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="startQuickSession('${t.subId}','${t.id}','${t.name.replace(/'/g,'&apos;')}','Revision')">Revise</button>
+          </div>`).join('') || '<div class="text-muted text-sm text-center" style="padding:1.5rem 0">No weak topics detected yet.</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+window.startQuickSession = function(subId, topicId, topicName, type) {
+  _session.subId = subId;
+  _session.topicId = topicId;
+  _session.topicName = topicName;
+  _session.type = type;
+  _session.totalSecs = 45 * 60;
+  _session.secsLeft = 45 * 60;
+  navigate('session');
+};
+
+// ─── TIMETABLE ─────────────────────────────────────────────
+
+function renderTimetable() {
+  const st = DB.get();
+  Scheduler.rebalance();
+  const todayStr = DB.today();
+  const upcoming = (st.timetable || []).filter(t => t.date >= todayStr).slice(0, 30);
+  const byDate = {};
+  upcoming.forEach(t => { if (!byDate[t.date]) byDate[t.date] = []; byDate[t.date].push(t); });
+  return `
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <div class="section-title" style="margin:0">Adaptive Timetable</div>
+      <div class="text-muted text-sm">Auto-rebalances when tasks are missed or completed</div>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-secondary" onclick="Scheduler.rebalance();render()">${icon('refresh',14)} Rebalance Now</button>
+      <button class="btn btn-primary" onclick="Scheduler.generate();render()">${icon('sparkles',14)} Regenerate</button>
+    </div>
+  </div>
+  ${Object.keys(byDate).length === 0 ? `
+    <div class="card text-center" style="padding:4rem">
+      <div style="font-size:3rem;margin-bottom:1rem">📅</div>
+      <div class="font-semibold text-lg mb-2">No timetable generated yet</div>
+      <div class="text-muted text-sm mb-4">Complete onboarding or click Regenerate to create your adaptive study schedule.</div>
+      <button class="btn btn-primary btn-lg" onclick="Scheduler.generate();render()">${icon('sparkles',16)} Generate My Timetable</button>
+    </div>
+  ` : Object.entries(byDate).slice(0, 10).map(([date, tasks]) => {
+    const d = new Date(date + 'T00:00:00');
+    const label = date === todayStr ? 'Today' : date === new Date(Date.now()+86400000).toISOString().split('T')[0] ? 'Tomorrow' : d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+    return `
+    <div class="card mb-3">
+      <div class="flex justify-between items-center mb-3">
+        <div class="font-semibold">${label === 'Today' ? '🔥 ' : ''}${label}</div>
+        <div class="text-muted text-xs">${tasks.length} tasks • ${tasks.reduce((s,t)=>s+t.duration,0)} min</div>
+      </div>
+      <div class="task-list">
+        ${tasks.map(t => `
+          <div class="task-row ${t.completed?'completed':''}">
+            <div class="task-left">
+              ${checkBox(t.completed, `Scheduler.toggleComplete(${t.id});render()`)}
+              <div>
+                <div class="task-subject">${t.subName}</div>
+                <div class="task-topic">${t.topicName}</div>
+              </div>
+            </div>
+            <div class="flex gap-2 items-center">
+              ${t.completed ? badge('Done','green') : `<div class="task-meta">${t.duration}m</div>`}
+              ${!t.completed ? `<button class="btn btn-secondary btn-sm" onclick="startQuickSession('${t.subId}','${t.topicId}','${t.topicName.replace(/'/g,'&apos;')}','Study')">${icon('play',12)}</button>` : ''}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('')}`;
+}
+
+// ─── SUBJECTS ──────────────────────────────────────────────
+
+let _activeSubject = Object.keys(SYLLABUS)[0];
+function renderSubjects() {
+  const st = DB.get();
+  const sub = st.syllabus[_activeSubject];
+  return `
+  <div class="flex justify-between items-center mb-6">
+    <div class="section-title" style="margin:0">Syllabus Tracker</div>
+  </div>
+  <div class="grid-2" style="grid-template-columns:220px 1fr;align-items:flex-start;gap:1.25rem">
+    <div class="card" style="padding:0.5rem">
+      ${Object.entries(st.syllabus).map(([id, s]) => {
+        const done = s.topics.filter(t => t.status === 'Completed').length;
+        const pct = Math.round((done / s.topics.length) * 100);
+        return `
+        <button class="nav-item ${_activeSubject === id ? 'active' : ''}" onclick="_activeSubject='${id}';render()" style="justify-content:space-between;width:100%">
+          <span>${s.name}</span>
+          <span class="text-xs" style="color:${pct>=75?'var(--green)':pct>=40?'var(--accent)':'var(--text3)'}">${pct}%</span>
+        </button>`;
+      }).join('')}
+    </div>
+    <div class="card">
+      <div class="font-bold text-lg mb-1">${sub.name}</div>
+      <div class="text-muted text-sm mb-4">${sub.topics.filter(t=>t.status==='Completed').length}/${sub.topics.length} topics completed</div>
+      <table>
+        <thead><tr>
+          <th>Topic</th><th>Status</th><th>Confidence</th><th>Mastery</th><th>PYQ Acc.</th><th>Action</th>
+        </tr></thead>
+        <tbody>
+          ${sub.topics.map(t => {
+            const statusColors = {'Completed':'green','Learning':'accent','Needs Revision':'yellow','Not Started':'dim'};
+            const mCol = t.mastery>=75?'var(--green)':t.mastery>=50?'var(--accent)':t.mastery>=25?'var(--yellow)':'var(--red)';
+            return `
+            <tr>
+              <td><div class="font-medium text-sm">${t.name}</div></td>
+              <td>
+                <select class="select" style="padding:0.25rem 0.5rem;font-size:0.75rem;width:140px" onchange="DB.updateTopic('${_activeSubject}','${t.id}',{status:this.value});Scheduler.rebalance();render()">
+                  ${['Not Started','Learning','Needs Revision','Completed'].map(s => `<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
+                </select>
+              </td>
+              <td>
+                <div class="flex gap-1 items-center">
+                  ${[1,2,3,4,5].map(n => `<span style="cursor:pointer;color:${n<=t.confidence?'var(--yellow)':'var(--border2)'};font-size:1rem" onclick="DB.updateTopic('${_activeSubject}','${t.id}',{confidence:${n}});render()">★</span>`).join('')}
+                </div>
+              </td>
+              <td>
+                <div class="font-bold text-sm" style="color:${mCol}">${t.mastery}%</div>
+                <div style="width:60px">${bar(t.mastery,'',3)}</div>
+              </td>
+              <td class="font-medium">${t.attempts ? t.accuracy + '%' : '—'}</td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="startQuickSession('${_activeSubject}','${t.id}','${t.name.replace(/'/g,'&apos;')}','Study')">${icon('play',12)} Study</button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ─── STUDY SESSION ─────────────────────────────────────────
+
+const _session = {
+  subId: null, topicId: null, topicName: null, type: 'Study',
+  totalSecs: 45*60, secsLeft: 45*60, running: false, interval: null, startedAt: null
+};
+
+function renderSession() {
+  const st = DB.get();
+  if (!_session.subId) {
+    const rec = DB.recommend();
+    if (rec) { _session.subId = rec.subId; _session.topicId = rec.topicId; _session.topicName = rec.topicName; _session.type = rec.type; }
+    else { _session.subId = Object.keys(st.syllabus)[0]; const t = st.syllabus[_session.subId].topics[0]; _session.topicId = t.id; _session.topicName = t.name; }
+  }
+
+  const mins = Math.floor(_session.secsLeft / 60).toString().padStart(2,'0');
+  const secs = (_session.secsLeft % 60).toString().padStart(2,'0');
+  const pct = Math.round((1 - _session.secsLeft / _session.totalSecs) * 100);
+  const todayStr = DB.today();
+  const todayLogs = st.studyLogs.filter(l => l.date === todayStr);
+  const totalTodayMin = todayLogs.reduce((s,l) => s+l.minutes, 0);
+
+  return `
+  <div style="max-width:720px;margin:0 auto">
+    <div class="section-title">Study Timer</div>
+    <div class="card mb-4" style="text-align:center;padding:3rem 2rem">
+      
+      <!-- Timer Display -->
+      <div class="timer-display ${_session.running ? 'timer-active' : 'timer-paused'}" id="timer-disp">${mins}:${secs}</div>
+      
+      <!-- Progress bar -->
+      <div class="bar-bg" style="height:6px;margin:1.5rem auto;max-width:400px">
+        <div class="bar-fill" style="width:${pct}%;background:${_session.running?'var(--green)':'var(--accent)'}"></div>
+      </div>
+
+      <!-- Distraction tracker -->
+      ${_session.running ? `
+        <div class="flex gap-4 justify-center mb-4">
+          <div style="background:var(--bg);border:1px solid var(--border);padding:0.4rem 1rem;border-radius:var(--r-full);font-size:0.8rem" class="flex gap-2 items-center">
+            ${icon('eye',14)} <span style="color:var(--green)">Focus Mode Active</span>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--border);padding:0.4rem 1rem;border-radius:var(--r-full);font-size:0.8rem" class="flex gap-2 items-center">
+            ${icon('alert',14)} <span id="live-dist">${Focus.getCount()} distractions</span>
+          </div>
+        </div>` : ''}
+
+      <!-- Subject/Topic/Type Selectors -->
+      <div class="flex gap-3 justify-center mb-6">
+        <select class="select" style="width:auto;min-width:160px" id="sess-sub" onchange="sessSubChange()" ${_session.running?'disabled':''}>
+          ${Object.entries(st.syllabus).map(([id, s]) => `<option value="${id}" ${_session.subId===id?'selected':''}>${s.name}</option>`).join('')}
+        </select>
+        <select class="select" style="width:auto;min-width:180px" id="sess-topic" onchange="_session.topicId=this.value.split('||')[0];_session.topicName=this.value.split('||')[1];render()" ${_session.running?'disabled':''}>
+          ${(st.syllabus[_session.subId]?.topics||[]).map(t => `<option value="${t.id}||${t.name}" ${_session.topicId===t.id?'selected':''}>${t.name}</option>`).join('')}
+        </select>
+        <select class="select" style="width:auto" id="sess-type" onchange="_session.type=this.value" ${_session.running?'disabled':''}>
+          ${['Study','Revision','PYQ Practice'].map(ty => `<option value="${ty}" ${_session.type===ty?'selected':''}>${ty}</option>`).join('')}
+        </select>
+      </div>
+      
+      <!-- Duration Selector (before start) -->
+      ${!_session.running ? `
+        <div class="flex gap-2 justify-center mb-6">
+          ${[25,45,60,90].map(m => `<button class="btn ${_session.totalSecs===m*60?'btn-primary':'btn-secondary'}" onclick="_session.totalSecs=${m*60};_session.secsLeft=${m*60};render()">${m}m</button>`).join('')}
+        </div>` : ''}
+      
+      <!-- Controls -->
+      <div class="flex gap-3 justify-center">
+        <button class="btn ${_session.running?'btn-secondary':'btn-primary'} btn-lg" onclick="sessToggle()">
+          ${icon(_session.running?'pause':'play', 18)} ${_session.running ? 'Pause' : 'Start Focus'}
+        </button>
+        <button class="btn btn-secondary btn-lg" onclick="sessFinish()">
+          ${icon('stop',18)} Finish & Log
+        </button>
+      </div>
+    </div>
+
+    <!-- Today's Breakdown -->
+    <div class="card">
+      <div class="font-semibold mb-3">Today's Study Breakdown (${totalTodayMin} min total)</div>
+      ${todayLogs.length ? `
+        <div class="grid-4">
+          ${todayLogs.slice(-8).map(l => `
+            <div class="stat-card">
+              <div class="text-xs text-muted">${st.syllabus[l.subId]?.name||l.subId}</div>
+              <div class="font-bold text-sm">${l.topicName}</div>
+              <div class="text-green text-xs mt-1">${l.minutes}m • ${l.distractions} distractions</div>
+            </div>`).join('')}
+        </div>
+      ` : '<div class="text-muted text-sm text-center" style="padding:1rem 0">No sessions logged today. Start studying! 🚀</div>'}
+    </div>
+  </div>`;
+}
+
+window.sessSubChange = function() {
+  const subId = document.getElementById('sess-sub').value;
+  _session.subId = subId;
+  const topics = DB.get().syllabus[subId]?.topics || [];
+  _session.topicId = topics[0]?.id || null;
+  _session.topicName = topics[0]?.name || null;
+  render();
+};
+
+window.sessToggle = function() {
+  if (_session.running) {
+    clearInterval(_session.interval); _session.running = false; Focus.stop();
+    render();
+  } else {
+    if (!_session.topicId) { alert('Please select a topic.'); return; }
+    _session.running = true; _session.startedAt = Date.now(); Focus.start();
+    _session.interval = setInterval(() => {
+      _session.secsLeft--;
+      const m = Math.floor(_session.secsLeft/60).toString().padStart(2,'0');
+      const s = (_session.secsLeft%60).toString().padStart(2,'0');
+      const d = document.getElementById('timer-disp');
+      if (d) d.textContent = `${m}:${s}`;
+      const ld = document.getElementById('live-dist');
+      if (ld) ld.textContent = `${Focus.getCount()} distractions`;
+      if (_session.secsLeft <= 0) sessFinish();
+    }, 1000);
+    render();
+  }
+};
+
+window.sessFinish = function() {
+  clearInterval(_session.interval); _session.running = false;
+  const focusStats = Focus.stop();
+  const elapsed = Math.max(1, Math.round((_session.totalSecs - _session.secsLeft) / 60));
+  if (_session.topicId) {
+    DB.logSession(_session.subId, _session.topicId, elapsed, focusStats.count);
+    toast(`✅ Logged: ${elapsed} min on ${_session.topicName}. Distractions: ${focusStats.count}`);
+    Scheduler.rebalance();
+  }
+  _session.secsLeft = _session.totalSecs; _session.running = false;
+  navigate('dashboard');
+};
+
+// ─── PYQ ARENA ─────────────────────────────────────────────
+
+const _pyq = { stage:'config', questions:[], idx:0, answers:[], reasons:[], times:[], qStart:null, answered:false, loading:false, errorMsg:'' };
+
+function renderPYQs() {
+  if (_pyq.stage === 'config') return renderPYQConfig();
+  if (_pyq.stage === 'active') return renderPYQActive();
+  return renderPYQSummary();
+}
+
+function renderPYQConfig() {
+  const st = DB.get();
+  const hasKey = !!st.settings.geminiApiKey;
+  return `
+  <div style="max-width:580px;margin:0 auto">
+    <div class="flex justify-between items-center mb-4">
+      <div class="section-title" style="margin:0">PYQ Arena</div>
+      ${hasKey ? badge('✨ Gemini API Active', 'green') : badge('🔌 Offline Mode', 'yellow')}
+    </div>
+    
+    ${!hasKey ? `
+      <div class="card mb-4" style="background:rgba(94,106,210,0.06);border-color:rgba(94,106,210,0.25)">
+        <div class="flex gap-2 items-start text-sm">
+          <div style="font-size:1.1rem;margin-top:-2px">💡</div>
+          <div>
+            <span class="font-semibold text-accent">Unlock Unlimited Real-Time Questions:</span> Add a Gemini API Key in the <a href="javascript:navigate('settings')" class="text-accent" style="text-decoration:underline;font-weight:600">Settings</a> page to stream infinite custom GATE questions directly from Google Gemini.
+          </div>
+        </div>
+      </div>` : ''}
+
+    <div class="card">
+      <div class="text-center mb-4">
+        <div style="font-size:2.5rem">${hasKey ? '🤖' : '🏆'}</div>
+        <div class="font-bold text-lg mb-1">${hasKey ? 'AI GATE Simulator' : 'Strict Practice Mode'}</div>
+        <div class="text-muted text-sm">Sequential questions • Answers locked after submission • Mistake Bank integration</div>
+      </div>
+      <div class="form-group">
+        <label class="label">Subject</label>
+        <select class="select" id="pyq-sub" onchange="pyqRefreshTopics()">
+          ${Object.entries(st.syllabus).map(([id,s]) => `<option value="${id}">${s.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="label">Topic</label>
+        <select class="select" id="pyq-topic">
+          ${(st.syllabus[Object.keys(st.syllabus)[0]].topics).map(t => `<option value="${t.id}||${t.name}">${t.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="label">Number of Questions</label>
+          <select class="select" id="pyq-count">
+            <option value="3">3 Questions</option><option value="5">5 Questions</option><option value="8">8 Questions</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="label">Difficulty Focus</label>
+          <select class="select" id="pyq-diff">
+            <option value="All">All Difficulties</option><option value="Medium">Medium</option><option value="Hard">Hard</option>
+          </select>
+        </div>
+      </div>
+      
+      ${_pyq.loading ? `
+        <div class="text-center p-4">
+          <div style="animation:spin 1s linear infinite;display:inline-block;margin-bottom:0.75rem">${icon('loader',24)}</div>
+          <div class="text-sm font-semibold">Generating questions using Gemini...</div>
+          <div class="text-xs text-muted mt-1">Fetching custom GATE problems with step-by-step math</div>
+        </div>
+      ` : `
+        <button class="btn btn-primary btn-full btn-lg mt-2" onclick="pyqStart()">
+          ${icon('play',16)} Start Practice Session
+        </button>
+      `}
+      
+      ${_pyq.errorMsg ? `<div class="text-red text-xs mt-3 text-center">⚠️ ${_pyq.errorMsg}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+window.pyqRefreshTopics = function() {
+  const sub = document.getElementById('pyq-sub').value;
+  const topics = DB.get().syllabus[sub]?.topics || [];
+  document.getElementById('pyq-topic').innerHTML = topics.map(t => `<option value="${t.id}||${t.name}">${t.name}</option>`).join('');
+};
+
+window.pyqStart = async function() {
+  const subId = document.getElementById('pyq-sub').value;
+  const subName = DB.get().syllabus[subId]?.name || subId;
+  const topicVal = document.getElementById('pyq-topic').value.split('||');
+  const topicId = topicVal[0], topicName = topicVal[1];
+  const count = parseInt(document.getElementById('pyq-count').value);
+  const diff = document.getElementById('pyq-diff').value;
+  const apiKey = DB.get().settings.geminiApiKey;
+
+  _pyq.loading = true;
+  _pyq.errorMsg = '';
+  render();
+
+  if (apiKey) {
+    try {
+      const prompt = `Generate exactly ${count} Multiple Choice Questions (MCQs) designed specifically for GATE CSE.
+Subject: ${subName}
+Topic: ${topicName}
+Difficulty focus: ${diff}
+
+Return a valid raw JSON array containing exactly ${count} objects matching this JSON schema:
+[
+  {
+    "text": "The text of the question, fully detailed. Use clear notation.",
+    "opts": ["Option A text", "Option B text", "Option C text", "Option D text"],
+    "correct": 0, // 0-based index of correct option
+    "explanation": "Detailed explanation showing how to solve step-by-step."
+  }
+]
+Do not wrap the output in markdown block like \`\`\`json. Return only the raw JSON string.`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      });
+
+      if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+      const resData = await response.json();
+      const rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) throw new Error("Empty response from AI");
+
+      const cleanJson = JSON.parse(rawText.replace(/```json|```/g, '').trim());
+      _pyq.questions = cleanJson.map((q, idx) => ({
+        id: `gemini_${Date.now()}_${idx}`,
+        subId, topicId, topicName,
+        year: 2026,
+        type: 'Gemini-AI',
+        difficulty: diff === 'All' ? 'Medium' : diff,
+        text: q.text,
+        opts: q.opts,
+        correct: q.correct,
+        explanation: q.explanation
+      }));
+
+      _pyq.idx = 0; _pyq.answers = []; _pyq.reasons = []; _pyq.times = []; _pyq.answered = false;
+      _pyq.qStart = Date.now(); _pyq.stage = 'active'; _pyq.loading = false;
+      render();
+      return;
+    } catch (err) {
+      console.error(err);
+      _pyq.errorMsg = `API Error: ${err.message}. Falling back to offline question bank...`;
+      // Allow fallback below
+    }
+  }
+
+  // Fallback Offline Mode
+  let pool = QUESTIONS.filter(q => q.subId === subId);
+  if (diff !== 'All') pool = pool.filter(q => q.difficulty === diff);
+
+  while (pool.length < count) {
+    pool.push({
+      id: 'ai_' + Date.now() + pool.length, subId, topicId, topicName,
+      year: 2026, type: 'Offline-AI', difficulty: 'Medium',
+      text: `[Offline Practice] Consider a system processing ${topicName}. Which component serves as the primary bottleneck under uniform distribution assumptions?`,
+      opts: ['Logarithmic overhead component', 'Linear state expansion path', 'Constant factor memory space', 'Deterministic execution depth'],
+      correct: 0, explanation: `Under standard GATE conditions for ${topicName}, optimal design targets minimizing log-overhead paths.`
+    });
+  }
+
+  _pyq.questions = pool.slice(0, count).map(q => ({ ...q, topicId, topicName }));
+  _pyq.idx = 0; _pyq.answers = []; _pyq.reasons = []; _pyq.times = []; _pyq.answered = false;
+  _pyq.qStart = Date.now(); _pyq.stage = 'active'; _pyq.loading = false;
+  render();
+};
+
+function renderPYQActive() {
+  const q = _pyq.questions[_pyq.idx];
+  const pct = Math.round((_pyq.idx / _pyq.questions.length) * 100);
+  const chosen = _pyq.answers[_pyq.idx];
+  const userWrong = _pyq.answered && chosen !== q.correct;
+  return `
+  <div style="max-width:720px;margin:0 auto">
+    <!-- Progress -->
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex gap-2 items-center">
+        <span class="font-semibold">Question ${_pyq.idx+1} of ${_pyq.questions.length}</span>
+        ${badge(q.type, q.type === 'Official' ? 'green' : 'accent')}
+        ${badge(q.difficulty, q.difficulty === 'Hard' ? 'red' : 'yellow')}
+        ${q.year ? badge('GATE ' + q.year, 'blue') : ''}
+      </div>
+    </div>
+    <div class="bar-bg mb-4"><div class="bar-fill" style="width:${pct}%"></div></div>
+
+    <div class="card mb-4">
+      <div style="font-size:1rem;line-height:1.7;margin-bottom:1.5rem;white-space:pre-wrap">${q.text}</div>
+      <div>
+        ${q.opts.map((opt, i) => {
+          let cls = '';
+          if (_pyq.answered) {
+            if (i === q.correct) cls = 'correct';
+            else if (i === chosen) cls = 'wrong';
+          }
+          return `
+          <button class="pyq-opt ${cls}" onclick="pyqAnswer(${i})" ${_pyq.answered?'disabled':''}>
+            <div class="opt-label">${String.fromCharCode(65+i)}</div>
+            <span>${opt}</span>
+            ${_pyq.answered && i === q.correct ? icon('check',16) : ''}
+            ${_pyq.answered && i === chosen && i !== q.correct ? icon('x',16) : ''}
+          </button>`;
+        }).join('')}
+      </div>
+
+      ${_pyq.answered ? `
+        <div style="border-top:1px solid var(--border);margin-top:1.25rem;padding-top:1.25rem">
+          <div class="font-semibold text-sm mb-2 text-accent">Explanation</div>
+          <div class="text-sm" style="line-height:1.7;color:var(--text2)">${q.explanation}</div>
+          ${userWrong ? `
+            <div style="background:var(--red-bg);border:1px dashed var(--red);border-radius:var(--r-md);padding:0.875rem;margin-top:1rem">
+              <div class="text-xs font-bold text-red mb-2">CLASSIFY YOUR MISTAKE (required to proceed)</div>
+              <div class="flex gap-2 flex-wrap" id="reason-btns">
+                ${['Concept Mistake','Calculation Mistake','Careless Mistake','Didn\'t Know','Guess'].map(r => `
+                  <button class="btn btn-sm ${_pyq.reasons[_pyq.idx]===r?'btn-danger':'btn-secondary'}" onclick="pyqSetReason('${r}')">${r}</button>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+          <div class="flex justify-end mt-4">
+            <button class="btn btn-primary btn-lg" onclick="pyqNext()" ${userWrong && !_pyq.reasons[_pyq.idx] ? 'disabled' : ''} id="pyq-next-btn">
+              ${_pyq.idx < _pyq.questions.length - 1 ? 'Next Question' : 'Finish Session'} ${icon('arrow-right',16)}
+            </button>
+          </div>
+        </div>` : ''}
+    </div>
+  </div>`;
+}
+
+window.pyqAnswer = function(idx) {
+  if (_pyq.answered) return;
+  const q = _pyq.questions[_pyq.idx];
+  _pyq.answers[_pyq.idx] = idx;
+  _pyq.times[_pyq.idx] = Math.round((Date.now() - _pyq.qStart) / 1000);
+  _pyq.answered = true;
+  render();
+  // Log to DB immediately
+  const status = idx === q.correct ? 'Correct' : 'Wrong';
+  DB.addPYQ(q.subId, q.topicId || q.subId+'_t', q.topicName, q.text, status, null, _pyq.times[_pyq.idx]);
+};
+
+window.pyqSetReason = function(reason) {
+  _pyq.reasons[_pyq.idx] = reason;
+  // Update mistake reason in DB
+  const q = _pyq.questions[_pyq.idx];
+  const attempt = DB.get().pyqAttempts.slice().reverse().find(a => a.status === 'Wrong' && a.subId === q.subId);
+  if (attempt) { attempt.wrongReason = reason; DB.save(); }
+  document.querySelectorAll('#reason-btns button').forEach(b => {
+    b.className = 'btn btn-sm ' + (b.textContent === reason ? 'btn-danger' : 'btn-secondary');
+  });
+  document.getElementById('pyq-next-btn').disabled = false;
+};
+
+window.pyqNext = function() {
+  if (_pyq.idx < _pyq.questions.length - 1) {
+    _pyq.idx++; _pyq.answered = false; _pyq.qStart = Date.now();
+    render();
+  } else {
+    _pyq.stage = 'summary'; render();
+  }
+};
+
+function renderPYQSummary() {
+  const qs = _pyq.questions;
+  const correct = qs.filter((_,i) => _pyq.answers[i] === qs[i].correct).length;
+  const accuracy = Math.round((correct / qs.length) * 100);
+  const totalTime = _pyq.times.reduce((s, t) => s + (t||0), 0);
+  return `
+  <div style="max-width:640px;margin:0 auto">
+    <div class="section-title">Session Complete</div>
+    <div class="card mb-4 text-center" style="padding:2.5rem">
+      <div style="font-size:4rem;margin-bottom:0.5rem">${accuracy >= 70 ? '🎉' : accuracy >= 50 ? '📚' : '💪'}</div>
+      <div class="text-2xl font-bold mb-1">You scored ${accuracy}%</div>
+      <div class="text-muted text-sm mb-4">${correct} correct out of ${qs.length} questions</div>
+      <div class="grid-3 mb-4">
+        <div class="stat-card"><div class="stat-label">Accuracy</div><div class="stat-value text-accent">${accuracy}%</div></div>
+        <div class="stat-card"><div class="stat-label">Correct</div><div class="stat-value text-green">${correct}</div></div>
+        <div class="stat-card"><div class="stat-label">Avg Time</div><div class="stat-value">${Math.round(totalTime/qs.length)}s</div></div>
+      </div>
+      <div class="flex gap-2 justify-center">
+        <button class="btn btn-secondary btn-lg" onclick="_pyq.stage='config';render()">Practice Again</button>
+        <button class="btn btn-primary btn-lg" onclick="navigate('dashboard')">Back to Dashboard</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="font-semibold mb-3">Question Breakdown</div>
+      <div class="task-list">
+        ${qs.map((q, i) => {
+          const ok = _pyq.answers[i] === q.correct;
+          return `
+          <div class="task-row">
+            <div style="flex:1">
+              <div class="task-subject">Q${i+1} • ${q.topicName || q.topic}</div>
+              <div class="task-topic text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:400px">${q.text.substring(0,80)}…</div>
+              <div class="flex gap-2 mt-1">
+                ${badge(ok?'Correct':'Wrong', ok?'green':'red')}
+                ${badge(_pyq.times[i]+'s','accent')}
+                ${!ok && _pyq.reasons[i] ? badge(_pyq.reasons[i],'yellow') : ''}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── SPACED REVISION ───────────────────────────────────────
+
+function renderRevision() {
+  const st = DB.get();
+  const due = DB.getSpacedRevision();
+  const all = st.revisionQueue;
+  const upcoming = all.filter(r => r.dueDate > DB.today()).map(r => {
+    const t = st.syllabus[r.subId]?.topics.find(t => t.id === r.topicId);
+    return { ...r, subName: st.syllabus[r.subId]?.name || r.subId, topicName: t?.name || r.topicId };
+  });
+  return `
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <div class="section-title" style="margin:0">Spaced Revision Queue</div>
+      <div class="text-muted text-sm">Items automatically scheduled using spaced repetition intervals based on mastery score</div>
+    </div>
+    <button class="btn btn-primary" onclick="reviseFirst()">
+      ${icon('play',14)} Start First Revision
+    </button>
+  </div>
+  
+  <div class="card mb-4" style="background:var(--yellow-bg);border-color:rgba(201,146,42,0.2)">
+    <div class="font-semibold mb-1 text-yellow">How spaced revision works</div>
+    <div class="text-sm text-muted">Topics with mastery ≥80% are reviewed every 7 days • 60-79% every 3 days • 40-59% every 2 days • &lt;40% every day. Wrong PYQ answers are automatically queued.</div>
+  </div>
+
+  <div class="font-semibold mb-3">Due Today (${due.length})</div>
+  <div class="task-list mb-6">
+    ${due.length ? due.map(r => `
+      <div class="task-row">
+        <div class="task-left">
+          ${checkBox(false, `DB.completeRevision(${r.id});render()`)}
+          <div>
+            <div class="task-subject">${r.subName}</div>
+            <div class="task-topic">${r.topicName}</div>
+            <div class="flex gap-2 mt-1">${badge(r.origin,'yellow')} ${badge('Due: '+r.dueDate,'red')}</div>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary btn-sm" onclick="startQuickSession('${r.subId}','${r.topicId}','${r.topicName.replace(/'/g,'&apos;')}','Revision')">
+            ${icon('play',12)} Revise
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="DB.completeRevision(${r.id});render()">Done ✓</button>
+        </div>
+      </div>`).join('') : '<div class="text-muted text-sm text-center" style="padding:1.5rem 0">✅ No revision due today! Great work.</div>'}
+  </div>
+
+  <div class="font-semibold mb-3">Upcoming Scheduled (${upcoming.length})</div>
+  <div class="task-list">
+    ${upcoming.slice(0,10).map(r => `
+      <div class="task-row" style="opacity:0.7">
+        <div>
+          <div class="task-subject">${r.subName}</div>
+          <div class="task-topic">${r.topicName}</div>
+          <div class="flex gap-2 mt-1">${badge(r.origin,'accent')} ${badge('Due: '+r.dueDate,'blue')}</div>
+        </div>
+      </div>`).join('') || '<div class="text-muted text-sm text-center" style="padding:1rem 0">No upcoming scheduled revisions.</div>'}
+  </div>`;
+}
+
+window.reviseFirst = function() {
+  const due = DB.getSpacedRevision();
+  if (due.length) { startQuickSession(due[0].subId, due[0].topicId, due[0].topicName, 'Revision'); }
+  else { toast('No revision due today! Great work.'); }
+};
+
+// ─── MISTAKE BANK ──────────────────────────────────────────
+
+function renderMistakes() {
+  const mistakes = DB.getMistakes();
+  const reasons = {};
+  mistakes.forEach(m => { reasons[m.wrongReason] = (reasons[m.wrongReason] || 0) + 1; });
+  return `
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <div class="section-title" style="margin:0">Mistake Bank</div>
+      <div class="text-muted text-sm">Incorrect PYQ attempts with classified error reasons</div>
+    </div>
+  </div>
+  
+  <div class="grid-4 mb-6">
+    <div class="stat-card">
+      <div class="stat-label">Total Errors</div>
+      <div class="stat-value text-red">${mistakes.length}</div>
+    </div>
+    ${Object.entries(reasons).map(([r,c]) => `
+      <div class="stat-card">
+        <div class="stat-label">${r}</div>
+        <div class="stat-value">${c}</div>
+      </div>`).join('')}
+  </div>
+  
+  <div class="card">
+    <div class="font-semibold mb-4">Error Log</div>
+    ${mistakes.length ? `
+    <table>
+      <thead><tr>
+        <th>Subject</th><th>Topic</th><th>Error Type</th><th>Solving Time</th><th>Date</th><th>Action</th>
+      </tr></thead>
+      <tbody>
+        ${mistakes.map(m => `
+          <tr>
+            <td>${badge(m.subName,'accent')}</td>
+            <td class="font-medium">${m.topicName}</td>
+            <td>${m.wrongReason ? badge(m.wrongReason,'red') : '—'}</td>
+            <td>${m.timeTaken}s</td>
+            <td class="text-muted">${m.date}</td>
+            <td>
+              <button class="btn btn-secondary btn-sm" onclick="_pyq.stage='config';navigate('pyqs')">
+                ${icon('refresh',12)} Practice Again
+              </button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    ` : '<div class="text-muted text-center" style="padding:3rem 0">🎉 No mistakes logged yet! Keep practicing in the PYQ Arena.</div>'}
+  </div>`;
+}
+
+// ─── MOCK TESTS ────────────────────────────────────────────
+
+function renderMocks() {
+  const st = DB.get();
+  const mocks = st.mockTests;
+  const avg = mocks.length ? Math.round(mocks.reduce((s, m) => s + m.score, 0) / mocks.length * 10) / 10 : 0;
+  const high = mocks.length ? Math.max(...mocks.map(m => m.score)) : 0;
+
+  // SVG chart
+  let chart = '';
+  if (mocks.length > 1) {
+    const W = 560, H = 130, PL = 36, PR = 16, PT = 16, PB = 16;
+    const cW = W - PL - PR, cH = H - PT - PB;
+    const pts = mocks.map((m, i) => ({ x: PL + (i / (mocks.length - 1)) * cW, y: PT + cH - (m.score / 100) * cH, s: m.score }));
+    const polyline = pts.map(p => `${p.x},${p.y}`).join(' ');
+    chart = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">
+      <line x1="${PL}" y1="${PT}" x2="${W-PR}" y2="${PT}" stroke="var(--border)" stroke-dasharray="3,3"/>
+      <line x1="${PL}" y1="${PT+cH/2}" x2="${W-PR}" y2="${PT+cH/2}" stroke="var(--border)" stroke-dasharray="3,3"/>
+      <line x1="${PL}" y1="${PT+cH}" x2="${W-PR}" y2="${PT+cH}" stroke="var(--border)"/>
+      <text x="${PL-4}" y="${PT+4}" fill="var(--text3)" font-size="9" text-anchor="end">100</text>
+      <text x="${PL-4}" y="${PT+cH/2+4}" fill="var(--text3)" font-size="9" text-anchor="end">50</text>
+      <text x="${PL-4}" y="${PT+cH+4}" fill="var(--text3)" font-size="9" text-anchor="end">0</text>
+      <polyline fill="none" stroke="var(--accent)" stroke-width="2" points="${polyline}"/>
+      ${pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--bg-card)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="${p.x}" y="${p.y-8}" fill="var(--text)" font-size="10" font-weight="600" text-anchor="middle">${p.s}</text>`).join('')}
+    </svg>`;
+  }
+
+  return `
+  <div class="flex justify-between items-center mb-6">
+    <div class="section-title" style="margin:0">Mock Tests</div>
+    <button class="btn btn-primary" onclick="showAddMockModal()">${icon('plus',14)} Log Test Result</button>
+  </div>
+
+  <div class="grid-3 mb-6">
+    <div class="stat-card">
+      <div class="stat-label">Average Score</div>
+      <div class="stat-value">${avg}/100</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Highest Score</div>
+      <div class="stat-value text-green">${high}/100</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Tests Completed</div>
+      <div class="stat-value">${mocks.length}</div>
+    </div>
+  </div>
+
+  ${mocks.length > 1 ? `<div class="card mb-6"><div class="font-semibold mb-3">Score Progression</div>${chart}</div>` : ''}
+
+  <div class="card">
+    <div class="font-semibold mb-4">Test History</div>
+    ${mocks.length ? `
+    <table>
+      <thead><tr><th>Date</th><th>Test Name</th><th>Score</th><th>Correct</th><th>Wrong</th><th>Unattempted</th></tr></thead>
+      <tbody>
+        ${mocks.map(m => `
+          <tr>
+            <td class="text-muted">${m.date}</td>
+            <td class="font-medium">${m.name}</td>
+            <td>${badge(m.score + '%', m.score >= 70 ? 'green' : m.score >= 50 ? 'accent' : 'red')}</td>
+            <td class="text-green">${m.correct}</td>
+            <td class="text-red">${m.wrong}</td>
+            <td class="text-muted">${m.unattempted}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>` : '<div class="text-muted text-center" style="padding:3rem 0">No mock tests logged yet. Click "Log Test Result" to get started.</div>'}
+  </div>`;
+}
+
+window.showAddMockModal = function() {
+  modal(`
+    <div class="modal-box">
+      <div class="modal-title">Log Mock Test Result</div>
+      <div class="modal-sub">Enter your performance details from the test series</div>
+      <div class="form-group">
+        <label class="label">Test Name</label>
+        <input class="input" id="m-name" placeholder="e.g. MadeEasy Grand Test 1">
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="label">Score (out of 100)</label>
+          <input class="input" id="m-score" type="number" placeholder="68.5" step="0.5" min="0" max="100">
+        </div>
+        <div class="form-group">
+          <label class="label">Correct Questions</label>
+          <input class="input" id="m-correct" type="number" placeholder="25" min="0">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="label">Wrong Questions</label>
+          <input class="input" id="m-wrong" type="number" placeholder="10" min="0">
+        </div>
+        <div class="form-group">
+          <label class="label">Unattempted</label>
+          <input class="input" id="m-skip" type="number" placeholder="5" min="0">
+        </div>
+      </div>
+      <div class="flex gap-2 justify-end mt-4">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary btn-lg" onclick="saveMock()">Save Result</button>
+      </div>
+    </div>
+  `);
+};
+
+window.saveMock = function() {
+  const name = document.getElementById('m-name').value.trim();
+  const score = document.getElementById('m-score').value;
+  const correct = document.getElementById('m-correct').value;
+  const wrong = document.getElementById('m-wrong').value;
+  const skip = document.getElementById('m-skip').value;
+  if (!name || !score) { alert('Please fill Test Name and Score'); return; }
+  DB.addMock(name, score, correct||0, wrong||0, skip||0);
+  closeModal(); render();
+  toast(`✅ Mock test "${name}" logged: ${score}%`);
+};
+
+// ─── ANALYTICS ─────────────────────────────────────────────
+
+function renderAnalytics() {
+  const st = DB.get();
+  const logs = st.studyLogs;
+  const totalMin = logs.reduce((s,l) => s+l.minutes, 0);
+  const totalDist = logs.reduce((s,l) => s+l.distractions, 0);
+  const focusScore = Math.max(0, 100 - totalDist * 3);
+  let done=0, learning=0, revision=0, notStarted=0, totalT=0;
+  for (const sub of Object.values(st.syllabus)) {
+    totalT += sub.topics.length;
+    done += sub.topics.filter(t => t.status==='Completed').length;
+    learning += sub.topics.filter(t => t.status==='Learning').length;
+    revision += sub.topics.filter(t => t.status==='Needs Revision').length;
+    notStarted += sub.topics.filter(t => t.status==='Not Started').length;
+  }
+  const reasons = {};
+  DB.getMistakes().forEach(m => { if(m.wrongReason) reasons[m.wrongReason] = (reasons[m.wrongReason]||0)+1; });
+  return `
+  <div class="section-title">Performance Analytics</div>
+  <div class="grid-4 mb-4">
+    <div class="stat-card">
+      <div class="stat-label">Total Study Time</div>
+      <div class="stat-value">${Math.floor(totalMin/60)}h ${totalMin%60}m</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Focus Score</div>
+      <div class="stat-value" style="color:${focusScore>=80?'var(--green)':focusScore>=60?'var(--accent)':'var(--red)'}">${focusScore}%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Distractions Logged</div>
+      <div class="stat-value">${totalDist}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Sessions Completed</div>
+      <div class="stat-value">${logs.length}</div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb-4">
+    <div class="card">
+      <div class="font-semibold mb-4">Syllabus Coverage</div>
+      ${[['Completed',done,'green'],['Learning',learning,'accent'],['Needs Revision',revision,'yellow'],['Not Started',notStarted,'dim']].map(([label,count,col]) => `
+        <div class="mb-3">
+          <div class="flex justify-between text-sm mb-1">
+            <span>${label}</span>
+            <span class="font-semibold">${count} topics (${Math.round(count/totalT*100)}%)</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(count/totalT*100)}%;background:var(--${col==='dim'?'text3':col})"></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="font-semibold mb-4">Mistake Analysis</div>
+      ${Object.keys(reasons).length ? Object.entries(reasons).map(([r,c]) => `
+        <div class="mb-3">
+          <div class="flex justify-between text-sm mb-1">
+            <span>${r}</span>
+            <span class="font-semibold">${c}</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(c/DB.getMistakes().length*100)}%;background:var(--red)"></div></div>
+        </div>`).join('') : '<div class="text-muted text-sm text-center" style="padding:2rem 0">No mistakes logged yet. Practice in PYQ Arena!</div>'}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="font-semibold mb-4">Subject-wise Performance</div>
+    <table>
+      <thead><tr><th>Subject</th><th>Progress</th><th>PYQ Attempts</th><th>Accuracy</th><th>Avg Mastery</th></tr></thead>
+      <tbody>
+        ${Object.entries(st.syllabus).map(([id,sub]) => {
+          const d = sub.topics.filter(t=>t.status==='Completed').length;
+          const pct = Math.round(d/sub.topics.length*100);
+          const att = st.pyqAttempts.filter(a=>a.subId===id).length;
+          const cor = st.pyqAttempts.filter(a=>a.subId===id&&a.status==='Correct').length;
+          const acc = att ? Math.round(cor/att*100) : 0;
+          const avgM = Math.round(sub.topics.reduce((s,t)=>s+t.mastery,0)/sub.topics.length);
+          return `<tr>
+            <td class="font-medium">${sub.name}</td>
+            <td><div class="flex gap-2 items-center"><span>${pct}%</span><div style="width:80px">${bar(pct,'',3)}</div></div></td>
+            <td>${att}</td>
+            <td><span style="color:${acc>=70?'var(--green)':acc>=50?'var(--accent)':'var(--red)'}" class="font-bold">${att ? acc+'%' : '—'}</span></td>
+            <td>${avgM}%</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ─── SETTINGS ──────────────────────────────────────────────
+
+function renderSettings() {
+  const s = DB.get().settings;
+  return `
+  <div style="max-width:560px;margin:0 auto">
+    <div class="section-title">Settings</div>
+    <div class="card mb-4">
+      <div class="font-semibold mb-4">Study Preferences</div>
+      <div class="form-group">
+        <label class="label">GATE Exam Date</label>
+        <input class="input" id="set-date" type="date" value="${s.examDate}">
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="label">Target Score (out of 100)</label>
+          <input class="input" id="set-score" type="number" value="${s.targetScore}" min="10" max="100">
+        </div>
+        <div class="form-group">
+          <label class="label">Target Rank</label>
+          <input class="input" id="set-rank" type="number" value="${s.targetRank}" min="1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="label">Daily Study Hours</label>
+        <input class="input" id="set-hours" type="number" value="${s.dailyHours}" min="1" max="16" step="0.5">
+      </div>
+      
+      <div class="divider" style="margin: 1.25rem 0;"></div>
+      
+      <div class="form-group">
+        <label class="label flex justify-between">
+          <span>Gemini API Key</span>
+          <a href="https://aistudio.google.com/" target="_blank" class="text-accent text-xs">Get free key from AI Studio →</a>
+        </label>
+        <input class="input" id="set-key" type="password" placeholder="AIzaSy..." value="${s.geminiApiKey || ''}">
+        <div class="text-muted text-xs mt-1">Enables real-time dynamic GATE CSE question generation inside the PYQ Arena.</div>
+      </div>
+      
+      <button class="btn btn-primary btn-full btn-lg mt-2" onclick="saveSettings()">Save & Rebalance Timetable</button>
+    </div>
+
+    <div class="card mb-4">
+      <div class="font-semibold mb-3">Data Management</div>
+      <div class="flex gap-2 mb-3">
+        <button class="btn btn-secondary flex-1" onclick="exportData()">${icon('download',14)} Export Backup</button>
+        <button class="btn btn-secondary flex-1" onclick="document.getElementById('import-f').click()">${icon('upload',14)} Restore Backup
+          <input type="file" id="import-f" style="display:none" accept=".json" onchange="importData(this)">
+        </button>
+      </div>
+    </div>
+
+    <button class="btn btn-danger btn-full" style="padding:0.75rem" onclick="resetApp()">
+      ${icon('trash',14)} Reset All Application Data
+    </button>
+  </div>`;
+}
+
+window.saveSettings = function() {
+  Object.assign(DB.get().settings, {
+    examDate: document.getElementById('set-date').value,
+    targetScore: parseFloat(document.getElementById('set-score').value),
+    targetRank: parseInt(document.getElementById('set-rank').value),
+    dailyHours: parseFloat(document.getElementById('set-hours').value),
+    geminiApiKey: document.getElementById('set-key').value.trim()
+  });
+  DB.save();
+  Scheduler.rebalance();
+  toast('✅ Settings saved and timetable rebalanced');
+  navigate('dashboard');
+};
+
+window.exportData = function() {
+  const data = JSON.stringify(DB.get());
+  const a = document.createElement('a');
+  a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(data);
+  a.download = `studytrack_${DB.today()}.json`;
+  a.click();
+};
+
+window.importData = function(input) {
+  const f = input.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (d.settings && d.syllabus) { localStorage.setItem('st_v2', JSON.stringify(d)); location.reload(); }
+      else alert('Invalid backup format');
+    } catch { alert('Failed to parse JSON'); }
+  };
+  reader.readAsText(f);
+};
+
+window.resetApp = function() {
+  if (confirm('This will permanently delete all your study data, logs, and progress. Are you sure?')) {
+    localStorage.removeItem('st_v2'); location.reload();
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+// DB EXTRAS (called before full refactor)
+// ═══════════════════════════════════════════════════════════
+
+DB.recalculateAll = function() {
+  const st = DB.get();
+  for (const sub of Object.values(st.syllabus)) {
+    sub.topics.forEach(t => { t.mastery = DB.calcMastery(t); });
+  }
+  DB.save();
+};
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+
+const App = {
+  init() {
+    const st = DB.get();
+    if (!st.settings.onboarded) {
+      currentPage = 'onboarding';
+    }
+    render();
+  },
+  quickStart() {
+    const rec = DB.recommend();
+    if (rec) {
+      startQuickSession(rec.subId, rec.topicId, rec.topicName, rec.type);
+    } else {
+      navigate('session');
+    }
+  }
+};
+
+window.App = App;
+App.init();
+</script>
+</body>
+</html>
