@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — StudyTrack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0c0f;
+  --bg-card: #131316;
+  --border: #27272a;
+  --border-focus: #5e6ad2;
+  --text: #f0f0f2;
+  --text2: #8a8a95;
+  --accent: #5e6ad2;
+  --accent-hover: #6d79e8;
+  --red: #d64e4e;
+  --red-bg: rgba(214,78,78,0.12);
+  --r-md: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1.5rem; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-md); padding: 2.5rem; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+.logo-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; justify-content: center; }
+.logo-text { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+.logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+.title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; text-align: center; }
+.subtitle { font-size: 0.8rem; color: var(--text2); margin-bottom: 1.5rem; text-align: center; }
+.form-group { margin-bottom: 1rem; }
+.label { font-size: 0.78rem; color: var(--text2); font-weight: 500; margin-bottom: 0.35rem; display: block; }
+.input { background: #1a1a1f; border: 1px solid var(--border); border-radius: 6px; padding: 0.65rem 0.85rem; color: var(--text); font-size: 0.875rem; font-family: inherit; outline: none; transition: border-color 0.15s ease; width: 100%; }
+.input:focus { border-color: var(--border-focus); }
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.65rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease; border: none; background: var(--accent); color: white; width: 100%; font-family: inherit; margin-top: 0.5rem; }
+.btn:hover { background: var(--accent-hover); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.footer { font-size: 0.8rem; color: var(--text2); text-align: center; margin-top: 1.5rem; }
+.footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.footer a:hover { text-decoration: underline; }
+.error-banner { background: var(--red-bg); border: 1px solid var(--red); color: var(--red); padding: 0.6rem 0.85rem; border-radius: 6px; font-size: 0.78rem; margin-bottom: 1rem; display: none; text-align: center; line-height: 1.4; }
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; margin-right: 0.5rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo-row">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--accent)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <span class="logo-text">StudyTrack</span>
+    <span class="logo-dot"></span>
+  </div>
+  <h2 class="title">Create Your Command Center</h2>
+  <p class="subtitle">Set up your personal GATE preparation dashboard</p>
+
+  <div id="error-box" class="error-banner"></div>
+
+  <form id="signup-form" onsubmit="handleSignup(event)">
+    <div class="form-group">
+      <label class="label">Username</label>
+      <input type="text" id="username-input" class="input" required placeholder="e.g. hari" minlength="3" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="label">Email Address</label>
+      <input type="email" id="email-input" class="input" required placeholder="e.g. hari@example.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="label">Password (min 6 chars)</label>
+      <input type="password" id="password-input" class="input" required placeholder="••••••••" minlength="6" autocomplete="new-password">
+    </div>
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label class="label">Confirm Password</label>
+      <input type="password" id="confirm-input" class="input" required placeholder="••••••••" minlength="6" autocomplete="new-password">
+    </div>
+    <button type="submit" id="submit-btn" class="btn">Create Account</button>
+  </form>
+
+  <div class="footer">
+    Already have an account? <a href="/login">Log in</a>
+  </div>
+</div>
+
+<script>
+// Prevent accessing signup if already logged in
+if (localStorage.getItem('st_token')) {
+  window.location.href = '/';
+}
+
+async function handleSignup(e) {
+  e.preventDefault();
+  const username = document.getElementById('username-input').value.trim();
+  const email = document.getElementById('email-input').value.trim();
+  const password = document.getElementById('password-input').value;
+  const confirmPassword = document.getElementById('confirm-input').value;
+  const errorBox = document.getElementById('error-box');
+  const submitBtn = document.getElementById('submit-btn');
+
+  errorBox.style.display = 'none';
+
+  if (password !== confirmPassword) {
+    errorBox.textContent = 'Passwords do not match.';
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner"></span>Creating account...';
+
+  try {
+    const response = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to create account.');
+    }
+
+    // Success - store token and redirect to dashboard
+    localStorage.setItem('st_token', data.token);
+    localStorage.setItem('st_user', JSON.stringify(data.user));
+    window.location.href = '/';
+
+  } catch (err) {
+    errorBox.textContent = err.message;
+    errorBox.style.display = 'block';
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Create Account';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "studytrack",
+  "version": "1.0.0",
+  "description": "GATE CSE Adaptive Command Center",
+  "main": "index.html",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.3.0"
+  }
+}

@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+  if (!localStorage.getItem('st_token')) {
+    window.location.href = '/login.html';
+  }
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StudyTrack — GATE CSE Command Center</title>
@@ -697,18 +702,32 @@ function render() {
   const now = new Date();
   const h = now.getHours();
   const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-  document.getElementById('topbar-greeting').innerHTML = `${g}, Hari 👋`;
+  const userJson = localStorage.getItem('st_user');
+  const user = userJson ? JSON.parse(userJson) : { username: 'Hari' };
+  const username = user.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : 'Hari';
+  
+  document.getElementById('topbar-greeting').innerHTML = `${g}, ${username} 👋`;
   document.getElementById('topbar-date').textContent = now.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const avatarEl = document.querySelector('.avatar');
+  if (avatarEl) avatarEl.textContent = username.charAt(0).toUpperCase();
+
   const st = DB.get();
   document.getElementById('sidebar-streak').textContent = `${st.streak} Day Streak`;
   document.getElementById('sidebar-target').textContent = `GATE ${new Date(st.settings.examDate).getFullYear()}`;
 
   // Render nav
-  document.getElementById('nav-links').innerHTML = NAV_ITEMS.map(n => `
+  let navHtml = NAV_ITEMS.map(n => `
     <button class="nav-item ${currentPage === n.id ? 'active' : ''}" onclick="navigate('${n.id}')">
       ${icon(n.icon, 16)} ${n.label}
     </button>
   `).join('');
+  navHtml += `
+    <div class="divider" style="margin: 0.5rem 0.75rem;"></div>
+    <button class="nav-item" onclick="handleLogout()" style="color: var(--red);">
+      ${icon('trash', 16)} Log Out
+    </button>
+  `;
+  document.getElementById('nav-links').innerHTML = navHtml;
 
   // Render page
   const pages = {
@@ -727,6 +746,12 @@ function navigate(page) {
   render();
 }
 window.navigate = navigate;
+
+window.handleLogout = function() {
+  localStorage.removeItem('st_token');
+  localStorage.removeItem('st_user');
+  window.location.href = '/login.html';
+};
 
 // ═══════════════════════════════════════════════════════════
 // PAGES
